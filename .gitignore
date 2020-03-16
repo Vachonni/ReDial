@@ -1,0 +1,26 @@
+###################  
+# Generated files #
+###################
+
+*.DS_Store
+__pycache__
+
+
+###########   
+# Results #
+###########  
+
+Experiments.json 
+/runs 
+/Results
+
+
+#####################  
+# Data PrePorcessed #
+#####################  
+
+/Data/E19/
+/Data/PreProcessing/
+/Data/Raw/
+/Data/Split/
+
