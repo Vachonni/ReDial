@@ -17,10 +17,13 @@ import argparse
 parser = argparse.ArgumentParser(description='Train an EncoderDecoder Recommender and Predict')
 
 
-# parser.add_argument('--id', type=str, metavar='', default='test', help='ID of experience. Will be used when saving file.')
 
+# Experient id
+parser.add_argument('--a_comment', type=str, metavar='', default='', \
+                    help='Text that will be added to the id (seconds since Epoch GMT) \
+                    of the experiment')
 
-
+    
 # Path
 parser.add_argument('--path_to_ReDial', type=str, metavar='', default=None, \
                     help='Path to ReDial folder. See PATH MANAGEMENT below')
@@ -51,9 +54,11 @@ parser.add_argument('--completionTrain', type=float, metavar='', default=100, \
 parser.add_argument('--completionEval', type=float, metavar='', default=100, \
                     help='% of data used for evaluation')
 parser.add_argument('--EARLY', default=False, action='store_true', \
-                    help="If arg added, Train at 10% and Eval at 10%")
+                    help="If arg added, Train at 10% and Eval at 10%")   
+parser.add_argument('--pred_only', default=False, action='store_true', \
+                    help="If arg added, no training, only pred. See below.")
 
-
+    
 
 # Model
 parser.add_argument('--layer1', type=int, metavar='', default=323, \
@@ -66,30 +71,15 @@ parser.add_argument('--activations', type=str, metavar='', default='relu', \
 parser.add_argument('--last_layer_activation', type=str, metavar='', default='softmax', \
                     choices=['none', 'sigmoid', 'softmax'],\
                     help='Last layer activation of the model')    
-parser.add_argument('--g_type', type=str, metavar='', default='none', \
+parser.add_argument('--g_type', type=str, metavar='', default='genres', \
                     choices=['none', 'fixed', 'one', 'genres', 'unit'], \
                     help="Parameter(s) learned for genres inputs. None: no genres, Fixed: no learning, \
                     One: one global parameter, Genres: one parameter by genres, Unit:one parameter per movie,...")
-parser.add_argument('--preModel', type=str, metavar='', default='none', \
-                    help='Path from path_to_ReDial to a pre-trained model to start with. \
-                    Should include a GenresWrapper of same type')
+parser.add_argument('--pre_model', type=str, metavar='', default='none', \
+                    help='Id of pre-trained model to start with. Model should \
+                    include a GenresWrapper of same type')
                     
                     
-                    
-# ...for Pred file
-parser.add_argument('--completionPredChrono', type=float, metavar='', default=100, \
-                    help='% of data used for prediction')
-parser.add_argument('--M1_path', type=str, metavar='', default='none', \
-                    help='Path from path_to_ReDial to a Model 1. Will pred with + without genres')
-parser.add_argument('--M1_label', type=str, metavar='', default='none', \
-                    help='Label for Model 1')
-parser.add_argument('--M2_path', type=str, metavar='', default='none', \
-                    help='Path from path_to_ReDial to a Model 2')
-parser.add_argument('--M2_label', type=str, metavar='', default='none', \
-                    help='Label to a Model 2')
-
-
-    
 # Genres 
 parser.add_argument('--genresDict', type=str, metavar='', default='genres_inter_IDX_2_ReD_or_id.json', \
                     help='File name of Dict of genres')
@@ -99,7 +89,7 @@ parser.add_argument('--top_cut', type=int, metavar='', default=100, \
 
     
 # Metrics
-parser.add_argument('--topx', type=int, metavar='', default=0, \
+parser.add_argument('--topx', type=int, metavar='', default=100, \
                     help='for NDCG mesure, size of top ranks considered. \
                          If 0, we consider all the values ranked')
 
@@ -135,6 +125,12 @@ if args.path_to_ReDial == None:
         args.path_to_ReDial = str(path.home()) + '/scratch/ReDial'
     print(f'       *** path_to_ReDial establish as {args.path_to_ReDial} *** \n\n\n\n')
 
+    
+# PRED_ONLY MANGEMENT
+if args.pred_only:
+    assert args.pre_model != None, 'When doing pred_only, need a model id as --pre_model'
+    args.epoch = 1
+        
     
 
 # ASSERTION

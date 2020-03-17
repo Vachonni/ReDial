@@ -15,7 +15,9 @@ from torch.utils import data
 import torch
 import time
 import json
-
+import scipy.stats as ss
+    
+    
 from Objects.MetricByMentions import MetricByMentions
 
 
@@ -235,7 +237,7 @@ def Eval(valid_loader, model, criterion, completion, topx=100):
                 
                 # Get Ranks for targets (we only care about liked movies)
                 avrg_rk, ndcg, re_1, re_10, re_50 = Ranks(pred[i], \
-                                                    pred[i][targets_idx], topx)  
+                                                    targets_idx, topx)       
                 
                 # Get the number of inputs mentionned before prediction
                 mentions = masks[0][i].sum(dtype=torch.uint8).item()
@@ -268,9 +270,10 @@ METRICS
     
 
 # DCG (Discounted Cumulative Gain)   
- 
-# Needed to compare rankings when the numbre of item compared are not the same
-# and/or when relevance is not binary
+
+# Needed to compare rankings when the number of items compared are not the same
+# and/or when relevance is not binary and/or each place in ranks is revelant 
+#(not only the presence or not as in Recall)
 
 def DCG(v, top):
     """
@@ -300,38 +303,31 @@ def nDCG(v, top, nb_values=0):
     idcg = DCG(np.arange(nb_values)+1, top)
     
     return round(dcg/idcg, 4)
-    
 
-    
 
-def Ranks(all_values, values_to_rank, topx = 0):
+def Ranks(all_values, indices_to_rank, topx = 0):
     """
-    Takes 2 numpy array and return, for all values in values_to_rank,
-    the average rank, nDCG and Recall@{1,10,50} for ranks smaller than topx
+    Takes 2 torch tensors and return, get the ranks of indices_to_rank,
+    the ranks, average ranks, MRR and nDCG for ranks smaller than topx
     """    
     
-    qt_values_to_rank = len(values_to_rank)
+    qt_values_to_rank = len(indices_to_rank)
     
     # If topx not mentionned (no top), it's for all the values
     if topx == 0: topx = len(all_values)
     
-    # Initiate ranks
-    ranks = np.zeros(qt_values_to_rank)
-    
-    for i,v in enumerate(values_to_rank):
-        ranks[i] = len(all_values[all_values > v]) + 1
+    # -1 because because ranking according to increasing values, we want decreasing
+    ranks = ss.rankdata((-1*all_values).cpu(), method='average')[indices_to_rank]
         
     ndcg = nDCG(ranks, topx, qt_values_to_rank)
     
     recall_1 = (ranks <= 1).sum() /  qt_values_to_rank
     recall_10 = (ranks <= 10).sum() / qt_values_to_rank
-    recall_50 = (ranks <= 50).sum() / qt_values_to_rank
+    recall_50 = (ranks <= 50).sum() / qt_values_to_rank    
     
     if ranks.sum() == 0: print('warning, should always be at least one rank')
     
     return ranks.mean(), ndcg, recall_1, recall_10, recall_50
-    
-
 
 
 
@@ -363,15 +359,15 @@ def PrintResults(metrics, epoch, model, metrics_to_print=['ndcg']):
     None.
     """
     
-    # Always print epoch and losses
-    print('\nEND EPOCH {:3d}'.format(epoch))
-    print('Train Loss on targets: {:.4f}'.format(metrics['train_loss']))
-    print('Valid Loss on targets: {:.4f}'.format(metrics['eval_loss']))
-    # TODO: Keep this print. If not, remove 'model' from arguments
-    print("Parameter g - Avrg: {:.4f} Min: {:.4f} Max: {:.4f}" \
-          .format(model.g.data.mean().item(), model.g.data.min().item(), \
-                  model.g.data.max().item()))
-    
+    # Print epoch and losses when training
+    if 'train_loss' in metrics:
+        print('\nEND EPOCH {:3d}'.format(epoch))
+        print('Train Loss on targets: {:.4f}'.format(metrics['train_loss']))
+        print('Valid Loss on targets: {:.4f}'.format(metrics['eval_loss']))
+        # TODO: Keep this print. If not, remove 'model' from arguments
+        print("Parameter g - Avrg: {:.4f} Min: {:.4f} Max: {:.4f}" \
+              .format(model.g.data.mean().item(), model.g.data.min().item(), \
+                      model.g.data.max().item()))
     
     # Print other metrics desired    
     for m in metrics_to_print:   
@@ -412,9 +408,10 @@ def ToTensorboard(tb, metrics, epoch, metrics_to_track=['ndcg']):
     None.
     """
     
-    # Always keep track of losses (in same graph)
-    tb.add_scalars('Losses', {'train': metrics['train_loss'], \
-                              'valid': metrics['eval_loss']}, epoch)
+    # Keep track of losses (in same graph) when training
+    if 'train_loss' in metrics:
+        tb.add_scalars('Losses', {'train': metrics['train_loss'], \
+                                  'valid': metrics['eval_loss']}, epoch)
     
     # Track other metrics desired    
     for m in metrics_to_track:
@@ -439,8 +436,12 @@ OTHERS
 
 def SaveExperiment(args):
     
-    # Set args.id with current GMT time
-    args.id = time.asctime(time.gmtime())
+    # Set args.id with nb of secs since Epoch GMT time + args.a_comment
+    # If args.pred_only, add a mention about it
+    if args.pred_only:
+        args.id = str(int(time.time())) + "__PRED_ONLY" + args.a_comment
+    else:
+        args.id = str(int(time.time())) + "__" + args.a_comment
     
     # Load Experiement.json
     with open('Experiments.json', 'r') as fp:
