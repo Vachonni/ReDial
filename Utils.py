@@ -348,7 +348,7 @@ def PrintResults(metrics, epoch, model, metrics_to_print=['ndcg']):
         All metrics evaluated for an epoch.
     epoch : int
         The epoch concern with those results.
-    model : torch.nn
+    model : torch.nn.Module
         The model we are training.
     metrics_to_print : list of str, optional
         List of metrics that will be printed. Correspond to keys from the metrics 
@@ -387,7 +387,7 @@ TENSORBOARD
 
 
 
-def ToTensorboard(tb, metrics, epoch, metrics_to_track=['ndcg']):
+def ToTensorboard(tb, metrics, epoch, model, metrics_to_track=['ndcg']):
     """
     Adding different metrics to Tensorboard for a specific epoch
     
@@ -395,10 +395,12 @@ def ToTensorboard(tb, metrics, epoch, metrics_to_track=['ndcg']):
     ----------
     tb: SummaryWriter obj of Tensorboard
         Instance to write to our Tensorboard
-    metrics : dict
+    metrics: dict
         All metrics evaluated for an epoch.
-    epoch : int
+    epoch: int
         The epoch concern with those results.
+    model: torch.nn.Module
+        The model we are training
     metrics_to_track : list of str, optional
         List of metrics that will be tracked. Correspond to keys from the metrics 
         The default is ['ndcg'].
@@ -420,10 +422,13 @@ def ToTensorboard(tb, metrics, epoch, metrics_to_track=['ndcg']):
         # Add to Tensorboard
         tb.add_scalar('avrg_'+metrics[m].name, metrics[m].Avrg(), epoch)
         tb.add_figure('avrg_'+metrics[m].name+'_by_mentions', fig, epoch)
-        tb.close()
-    
+
+    # Track model's parameters
+    for name, weights in model.named_parameters():
+        tb.add_histogram(name, weights, epoch)
 
 
+    tb.close()
 
 
 

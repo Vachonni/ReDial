@@ -38,6 +38,8 @@ from Objects.Message import Message
 
 
 
+
+
 class Conversation():
     
     def __init__(self, conv):
@@ -92,6 +94,7 @@ class Conversation():
         
 
 
+
     def GetMessagesByChunks(self):
         """
         Takes a Conversation and returns Message objects the by chunks of speaker.
@@ -134,8 +137,8 @@ class Conversation():
 
     def MessagesAndMentionsByChunks(self):
         """
-        Takes a Conversation and returns a list dict. Each dict corresponds
-        to a message chunk, where each unit is:
+        Takes a Conversation and returns a list dict. 
+        Each dict corresponds to a message chunk, each dict has:
             message
             unique movies mentioned prior to this message
             unique genres mentioned prior to this message
@@ -144,7 +147,10 @@ class Conversation():
         Returns
         -------
         messages_and_mentions : TYPE: list of dict
-                                FORMAT: [ (Message_obj, ReD_id, genres str)]
+                                FORMAT: [ ({'message': Message_obj, 
+                                            'movies_mentioned': [ReD_id], 
+                                            'genres_mentioned': [str],
+                                            'new_movies': [ReD_id]} ]
                                 DESCRIPTION: (see above)
 
         """

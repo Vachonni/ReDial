@@ -154,13 +154,13 @@ print('******* Loading SAMPLES from *******', \
 if not args.pred_only:    
     train_data = json.load(open(args.path_to_ReDial+args.dataPATH+'/'+args.dataTrain))
 valid_data = json.load(open(args.path_to_ReDial+args.dataPATH+'/'+args.dataValid))
-# Use only samples where there is a genres mention
+# TODO: STILL USEFULL? Use only samples where there is a genres mention
 valid_g_data = [[c,m,g,tbm] for c,m,g,tbm in valid_data if g != []]
 if args.DEBUG: 
     train_data = train_data[:128]
     valid_data = valid_data[:128]
 
-# G (genres) - Format [ [UserID, [movies uID of genres mentionned]] ]    
+# TODO: G (genres) - Format [ [UserID, [movies uID of genres mentionned]] ]    
 print('******* Loading GENRES from *******', args.path_to_ReDial+args.dataPATH+'/'+args.genresDict)
 genres_Inter = json.load(open(args.path_to_ReDial+args.dataPATH+'/'+args.genresDict))
 
@@ -186,7 +186,7 @@ if not args.pred_only:
                                                shuffle=True, drop_last=True, **kwargs)
 valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch,\
                                            shuffle=True, drop_last=False, **kwargs)    
-# For PredRaw - Loader of only 1 sample (user) 
+# TODO: STILL USEFULL? For PredRaw - Loader of only 1 sample (user) 
 valid_bs1_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=True, **kwargs)
 ##TODO: For PredChrono
 #valid_chrono_loader = torch.utils.data.DataLoader(valid_chrono_dataset, batch_size=args.batch, shuffle=True, **kwargs)    
@@ -237,7 +237,7 @@ for epoch in range(args.epoch):
     Utils.PrintResults(metrics, epoch, model, ['ndcg', 'recall@1', 'recall@10', 'recall@50'])
     
     # Add results to Tensorboard 
-    Utils.ToTensorboard(tb, metrics, epoch, ['ndcg', 'recall@1', 'recall@10', 'recall@50'])
+    Utils.ToTensorboard(tb, metrics, epoch, model, ['ndcg', 'recall@1', 'recall@10', 'recall@50'])
     
     
     # SAVING AND PATIENCE
