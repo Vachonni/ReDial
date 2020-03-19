@@ -28,3 +28,10 @@ Experiments.json
 /Data/Raw/
 /Data/Split/
 
+
+##################
+# Compute Canada #
+##################
+
+SB_TEMPLATE_REDIAL_DATA.sh
+SB_WRAPPER.sh
