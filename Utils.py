@@ -332,6 +332,7 @@ def Ranks(all_values, indices_to_rank, topx = 0):
 
 
 
+
 """
 
 PRINTS
@@ -344,7 +345,7 @@ def PrintResults(metrics, epoch, model, metrics_to_print=['ndcg']):
     
     Parameters
     ----------
-    metrics : dict
+    metrics : dict of MetricByMentions obj
         All metrics evaluated for an epoch.
     epoch : int
         The epoch concern with those results.
@@ -395,7 +396,7 @@ def ToTensorboard(tb, metrics, epoch, model, metrics_to_track=['ndcg']):
     ----------
     tb: SummaryWriter obj of Tensorboard
         Instance to write to our Tensorboard
-    metrics: dict
+    metrics: dict of MetricByMentions obj
         All metrics evaluated for an epoch.
     epoch: int
         The epoch concern with those results.

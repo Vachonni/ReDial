@@ -112,13 +112,19 @@ else:
     args.loss_fct = checkpoint['loss_fct']
     
 
+
+print('******* Loading GENRES dict from *******', args.genres_dict)
+# Format {"['genres']": [ idx, [movies ReD_or_id INTERSECTION of genres from key] ]}    
+genres_Inter = json.load(open(args.genres_dict))
+
+
 # WRAP MODEL GENRES PARAMETERS
 model_base = AutoEncoders.AsymmetricAutoEncoder(args.layers, \
                                                 nl_type=args.activations, \
                                                 is_constrained=False, dp_drop_prob=0.0, \
                                                 last_layer_activations=False, \
                                                 lla = args.last_layer_activation).to(args.DEVICE)
-model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type).to(args.DEVICE)
+model = AutoEncoders.GenresWrapperChrono(model_base, args.g_type, genres_Inter).to(args.DEVICE)
 
 # IF LOADED MODEL, LOAD PARAMETERS
 if args.pre_model != 'none':
@@ -160,9 +166,6 @@ if args.DEBUG:
     train_data = train_data[:128]
     valid_data = valid_data[:128]
 
-# TODO: G (genres) - Format [ [UserID, [movies uID of genres mentionned]] ]    
-print('******* Loading GENRES from *******', args.path_to_ReDial+args.dataPATH+'/'+args.genresDict)
-genres_Inter = json.load(open(args.path_to_ReDial+args.dataPATH+'/'+args.genresDict))
 
 
 ######## CREATING DATASET ListRatingDataset 

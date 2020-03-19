@@ -18,7 +18,7 @@ Class MetricByMentions
 """
 
 from collections import defaultdict
-from statistics import mean
+from statistics import mean, stdev
 import matplotlib.pyplot as plt 
 
 
@@ -55,7 +55,15 @@ class MetricByMentions:
             
     def AvrgByMentions(self):
 
-        return [mean(self.infos[i]) for i in range(9)]         
+        return [mean(self.infos[i]) for i in range(9)]        
+    
+    
+    
+    
+    def StdByMentions(self):
+        
+        return [stdev(self.infos[i]) for i in range(9)]   
+    
     
     
         
@@ -64,7 +72,8 @@ class MetricByMentions:
         fig, ax1 = plt.subplots()
         ax1.set_xlabel('Qt of movies mentioned before prediction')
         ax1.set_ylabel(self.name, color='darkblue')
-        ax1.plot(self.AvrgByMentions(), color='darkblue')
+        ax1.errorbar(range(9), self.AvrgByMentions(), self.StdByMentions(), \
+                     elinewidth=0.5, color='darkblue')
         
         ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
         

@@ -156,7 +156,7 @@ class GenresWrapperChrono(nn.Module):
     Wraps the model_pre with g parameter(s) (for genres input)
     """
     
-    def __init__(self, model_pre, g_type):
+    def __init__(self, model_pre, g_type, genres_Inter):
         super(GenresWrapperChrono, self).__init__()
         self.model_pre = model_pre
         self.g_type = g_type
@@ -169,10 +169,7 @@ class GenresWrapperChrono(nn.Module):
         if self.g_type == 'one':
             self.g = nn.Parameter(torch.rand(1)/10)
         if self.g_type == 'genres':
-            # Load all genres intersection and their UiD associated
-            self.dict_genresInter_idx_UiD = \
-            json.load(open(args.path_to_ReDial+args.dataPATH+'/'+args.genresDict))           
-            # Create g_g parameters that will weight the genres inputs (SHARED parameters by genres)
+            self.dict_genresInter_idx_UiD = genres_Inter
             self.g = nn.Parameter(torch.rand(1, len(self.dict_genresInter_idx_UiD))/10)            
         if self.g_type == 'unit':
             # Init g_i parameters that will weight the genres inputs, one by movie

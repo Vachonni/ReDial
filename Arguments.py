@@ -81,7 +81,7 @@ parser.add_argument('--pre_model', type=str, metavar='', default='none', \
                     
                     
 # Genres 
-parser.add_argument('--genresDict', type=str, metavar='', default='genres_inter_IDX_2_ReD_or_id.json', \
+parser.add_argument('--genres_dict', type=str, metavar='', default='genres_inter_IDX_2_ReD_or_id.json', \
                     help='File name of Dict of genres')
 parser.add_argument('--top_cut', type=int, metavar='', default=100, \
                     help='number of movies in genres vector (for torch Dataset)')
