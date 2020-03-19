@@ -126,7 +126,7 @@ torchvision==0.4.0
 # tornado==6.0.4
 # tqdm==4.40.0
 # traitlets==4.3.3
-transformers==2.2.0
+# transformers==2.2.0
 # ujson==1.35
 # urllib3==1.25.8
 # watchdog==0.10.2
