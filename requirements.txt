@@ -103,7 +103,7 @@ regex==2019.11.1
 # Rtree==0.9.3
 # s3transfer==0.2.1
 # sacremoses==0.0.35
-scikit-learn==0.21.3
+scikit-learn==0.22.1
 # scipy==1.4.1
 # sentencepiece==0.1.83
 # six==1.14.0
