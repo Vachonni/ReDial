@@ -30,11 +30,11 @@ parser.add_argument('--path_to_ReDial', type=str, metavar='', default=None, \
     
     
 # Data
-parser.add_argument('--dataPATH', type=str, metavar='', default='/Data/EncoderDecoder', \
+parser.add_argument('--dataPATH', type=str, metavar='', default='/Data/ED/Next', \
                     help='Path from path_to_ReDial to datasets to train on')
-parser.add_argument('--dataTrain', type=str, metavar='', default='ED_next_train.json', \
+parser.add_argument('--dataTrain', type=str, metavar='', default='Train.json', \
                     help='File name of Dataset to train on')
-parser.add_argument('--dataValid', type=str, metavar='', default='ED_next_valid.json', \
+parser.add_argument('--dataValid', type=str, metavar='', default='Val.json', \
                     help='File name of Dataset to for validation')
 parser.add_argument('--exclude_genres', default=False, action='store_true', \
                     help='If arg added, genres not used in input (Dataset part empty for genres)')
@@ -111,7 +111,11 @@ args = parser.parse_args()
 
 
 
-# PATH MANAGEMENT FOR SAVING AND LOADING
+
+
+# PATH MANAGEMENT 
+
+# ...for saving and loading
 if args.path_to_ReDial == None:
     print('\n\n\n\n       *** No path_to_ReDial specified as args *** ')
     from pathlib import Path
@@ -125,12 +129,18 @@ if args.path_to_ReDial == None:
         args.path_to_ReDial = str(path.home()) + '/scratch/ReDial'
     print(f'       *** path_to_ReDial establish as {args.path_to_ReDial} *** \n\n\n\n')
 
+# ...for genres_dict
+args.genres_dict = args.path_to_ReDial + '/Data/PreProcessed/' + args.genres_dict
     
+
+
+
 # PRED_ONLY MANGEMENT
 if args.pred_only:
     assert args.pre_model != None, 'When doing pred_only, need a model id as --pre_model'
     args.epoch = 1
         
+
     
 
 # ASSERTION
@@ -141,6 +151,7 @@ if args.loss_fct == 'BCEWLL':
 
 assert 0 <= args.completionTrain <=100,'completionTrain should be in [0,100]'
 assert 0 <= args.completionEval <=100,'completionPred should be in [0,100]'
+
 
 
 # CONVERSION

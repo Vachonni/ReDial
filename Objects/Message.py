@@ -18,6 +18,8 @@ Class Message
 import sys
 from pathlib import Path 
 import torch
+from nltk.tokenize import word_tokenize
+from nltk.stem.porter import PorterStemmer
 import re
 
 
@@ -80,12 +82,20 @@ class Message:
         
         l_genres = []
         
-        # Spit str by words after lowering case
-        l_words = self.text.lower().split(' ')
+        # Lemmatize genres
+        genres_lem = [PorterStemmer().stem(word) for word in Settings.genres]
         
-        for w in l_words:
-            if w in Settings.genres:
-                l_genres.append(w)
+        # Spit str by words after lowering case
+        text_token = word_tokenize(self.text.lower())
+        # Lemmatize text
+        text_token_lem = [PorterStemmer().stem(word) for word in text_token]
+        
+        # Go through all genres lemmatize
+        for i, g in enumerate(genres_lem):
+            # If it's found in the text
+            if g in text_token_lem:
+                # Return the original genres
+                l_genres.append(Settings.genres[i])
         
         return l_genres
     
@@ -99,7 +109,7 @@ class Message:
         Returns
         -------
         l_movies : TYPE: list of movies by ReD_id
-                   FORMAT: [int]
+                   FORMAT: [str]
                    DESCRIPTION: List of movies ReD_id in the text of that Message
         """
         
@@ -107,7 +117,7 @@ class Message:
         # Use 'regular expressions' (re) to extract movie mentions
         l_movies = re_filmId.findall(self.text)
         
-        # Remmove '@'at begining and turn str into int
+        # Remmove '@'at begining and return as str 
         l_movies = [m[1:] for m in l_movies]
     
         return l_movies

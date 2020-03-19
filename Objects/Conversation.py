@@ -35,12 +35,19 @@ if path_to_ReDial not in sys.path:
 
 
 from Objects.Message import Message
+from Settings import ReD_id_2_ReD_or_id
 
 
 
 
 
 class Conversation():
+    
+    
+    # Class variable for targets of BERT Data 
+    max_qt_ratings = 0
+    
+    
     
     def __init__(self, conv):
         """
@@ -160,6 +167,8 @@ class Conversation():
         
         # Running dict 
         m_n_m = defaultdict(list)
+        # Init 'text_mentioned' to '' since it's not a list
+        m_n_m['text_mentioned'] = ''
         
         messages = self.GetMessagesByChunks()
         
@@ -185,7 +194,9 @@ class Conversation():
             # Add only genres mentioned by seeker 
             # (we suppose seeker's mentions are positve, not as certain for recommender's mentions)
             if message.role == 'S::':
-                m_n_m['genres_mentioned'] += new_genres   
+                m_n_m['genres_mentioned'] += new_genres  
+            # Add text mentioned in this message to the previous. Include role.
+            m_n_m['text_mentioned'] += message.role + ' ' + message.text +'  '
             
         return messages_and_mentions
 
@@ -231,6 +242,212 @@ class Conversation():
 
 
 
+    
+    def ReDOrIddAndRatings(self, movies):
+        """
+        Takes a list of movies and returns a list of movies (ReD_or_id) and associated rating 
+        in this conversation.  
+        
+        If no rating exists, return [].
+    
+        Parameters
+        ----------
+        movies : TYPE: List of ReD_id
+                 FORMAT: [ReD_id(str))]
+        conv : TYPE: Conversation obj
+    
+        Returns
+        -------
+        data_ED : TYPE: List of tuple
+                  FORMAT: [ (ReD_or_id(int), rating) ] 
+    
+        """
+        
+        data_ED = []
+        
+        # Add the attribute 'movies_and_ratings' to this Conversation instance if not there
+        if not hasattr(self, 'movies_and_ratings'):
+            self.movies_and_ratings = conv.GetMoviesAndRatings()
+        
+        if self.movies_and_ratings != None:
+    
+            for m in movies:
+                # If there is a rating for this movie
+                if self.movies_and_ratings.get(m, None) != None:
+                    # ...it becomes a data point
+                    data_ED.append([ReD_id_2_ReD_or_id[m], self.movies_and_ratings[m]])
+    
+        return data_ED
+
+
+
+
+    def BERTTarget(self, target, movies_mentioned):
+        """
+        Convert targets to format needed for BERT_Reco
+
+        Parameters
+        ----------
+        target : TYPE: list 
+                 FORMAT: [ [ReD_or_id, rating] ]
+                 DESCRIPTION: list of movies and ratings
+        movies_mentioned : TYPE: list
+                FORMAT: [ [ReD_or_id] ]
+                DESCRIPTION: Movies that were already mentioned in the conversation
+
+        Returns
+        -------
+        filled_targets : TYPE: list 
+                FORMAT: [(ReD_or_id, ratings)]   
+                DESCRIPTION: Starts with (-2,qt_mentioned), then the actual targets and \
+                              finishes by filling (-1,0) Until max_qr_ratings in all conv
+
+        """
+        
+        qt_mentioned = len(movies_mentioned)
+        
+        # Transform: BERT_Reco needs targets as list of tuples, not list of list 
+        target = [(m,r) for m,r in target]       
+        
+        # Initialize 
+        filled_targets = [(-2, qt_mentioned)] + target
+        
+        # Filling
+        fill_size = Conversation.max_qt_ratings - len(target)
+        filling = [(-1,0)] * fill_size
+        filled_targets += filling
+        
+        return filled_targets
+
+
+
+
+    def ConversationToDataByRecommendations(self):
+        """
+        Takes a ReDial Conversation obj and 
+        returns **FOUR** sets of data ready for ML (FOR THIS ONE CONVERSATION)
+            ED_next: For ED, target is only one movie, the ones mentioned in next message
+            ED_all: For ED, targets are all the movies to be mentioned in the rest of conversation
+            BERT_next: For BERT, target is only one movie, the ones mentioned in next message
+            BERT_all: For BERT, targets are all the movies to be mentioned in the rest of conversation
+    
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        ED_next : TYPE list of list
+            FORMAT:[
+            [
+            Conv_id -> str, 
+            inputs -> [(ReD_or_id, rating)]
+            genres -> [str]
+            targets -> [(ReD_or_id, rating)]
+            ]
+            ]
+            DESCRIPTION: For ED, target is only one movie, the ones mentioned in next message
+        
+        ED_all : TYPE list of list
+            FORMAT:[
+            [
+            Conv_id -> str, 
+            inputs -> [(ReD_or_id, rating)]
+            genres -> [str]
+            targets -> [(ReD_or_id, rating)]
+            ]
+            ]
+            DESCRIPTION: For ED, targets are all the movies to be mentioned in the rest of conversation
+        
+        BERT_next : TYPE **ONE** defaultdict(list) where each keys has values for all dataset
+            FORMAT:{
+                    ConID: int,
+                    text: str, 
+                    ratings: "[(ReD_or_id, ratings)]" -> starts with (-2,qt_mentioned) fills (-1,0)
+                    }
+            DESCRIPTION: For BERT, target is only one movie, the ones mentioned in next message 
+        
+        BERT_all : TYPE: **ONE** defaultdict(list) where each keys has values for all dataset
+            FORMAT:{
+                    ConID: [int],
+                    text: [str], 
+                    ratings: "[[(ReD_or_id, ratings)]]" -> starts with (-2,qt_mentioned) fills (-1,0)
+                    }
+            DESCRIPTION: For BERT, targets are all the movies to be mentioned in the rest of conversation  
+        """
+        
+        # Initialize for ED and BERT, each for next and all
+        ED_next = []
+        ED_all = [] 
+        BERT_next = defaultdict(list)
+        BERT_all = defaultdict(list)
+        
+        # Add the attribute 'movies_and_ratings' to this Conversation instance if not there
+        # (will be used in other methods)
+        if not hasattr(self, 'movies_and_ratings'):
+            self.movies_and_ratings = self.GetMoviesAndRatings() 
+        
+        # Keep track of movies to be mentioned, not mentioned yet and that have ratings
+        movies_to_be_mentioned = copy.deepcopy(self.movies_and_ratings)
+        
+        
+        # Consider all messages in this conversation
+        for m_n_m in self.MessagesAndMentionsByChunks():    
+                
+            # If no more movies to be mentioned or their were no movies form completed,
+            # stop process for this conversation
+            if movies_to_be_mentioned == {} or movies_to_be_mentioned == None: break
+            
+        
+            # If message is from recommender and it mentions new_movies (i.e Reco recommends!)
+            if m_n_m['message'].role == 'R::' and m_n_m['new_movies'] != []:
+                
+                # ED_DATA
+                # If there is an input
+                if m_n_m['movies_mentioned'] != [] or m_n_m['genres_mentioned'] != []:
+                    # Add data for every movies in this message in data_next if has rating
+                    for m in m_n_m['new_movies']:
+                        target = self.ReDOrIddAndRatings([m])
+                        if target != []:
+                            ED_next.append([str(self.conv_id),
+                                            self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
+                                            m_n_m['genres_mentioned'],
+                                            target])
+                
+                # Add data for all movies to come (with ratings) in data_all 
+                target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))
+                ED_all.append([str(self.conv_id),
+                               self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
+                               m_n_m['genres_mentioned'],
+                               target])                                
+                   
+                # BERT_DATA
+                # Add data for every movies in this message in data_next if has rating
+                for m in m_n_m['new_movies']:
+                    target = self.ReDOrIddAndRatings([m])
+                    if target != []:
+                        BERT_next['ConvID'].append(self.conv_id)
+                        BERT_next['text'].append(m_n_m['text_mentioned'])
+                        # Convert to BERT target type
+                        B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
+                        BERT_next['ratings'].append(B_target)
+
+                # Add data for all movies to come in data_all if has target
+                target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))      
+                BERT_all['ConvID'].append(self.conv_id)
+                BERT_all['text'].append(m_n_m['text_mentioned'])
+                # Convert to BERT target type
+                B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
+                BERT_all['ratings'].append(B_target) 
+                
+                
+            # Remove all movies in this message from movies_to_be_mentioned 
+            for m in m_n_m['new_movies']:
+                movies_to_be_mentioned.pop(m, None)
+           
+            
+        return ED_next, ED_all, BERT_next, BERT_all
+
+
 
 
 
@@ -249,7 +466,24 @@ if __name__ == '__main__':
     ex_conv = {"movieMentions": {"125431": "Annabelle  (2014)", "118338": "The Forest  (2016)", "119295": "A Nightmare on Elm Street  (2010)", "130591": "Friday the 13th  (1980)", "161244": "Nocturnal Animals  (2016)", "77161": "A Nightmare on Elm Street (1984)", "144779": "Annabelle 2 (2017)", "157190": "Arrival  (2016)"}, "respondentQuestions": {"125431": {"suggested": 1, "seen": 0, "liked": 2}, "118338": {"suggested": 1, "seen": 2, "liked": 2}, "119295": {"suggested": 0, "seen": 1, "liked": 1}, "130591": {"suggested": 1, "seen": 2, "liked": 2}, "161244": {"suggested": 0, "seen": 2, "liked": 2}, "77161": {"suggested": 1, "seen": 1, "liked": 1}, "144779": {"suggested": 0, "seen": 1, "liked": 1}, "157190": {"suggested": 0, "seen": 2, "liked": 2}}, "messages": [{"timeOffset": 0, "text": "Hello, I hear you are looking for movie recommendations.  Do you have any sort of genre in mind?", "senderWorkerId": 959, "messageId": 204857}, {"timeOffset": 37, "text": "Yes, I'd recommend psychological thrillers.  Have you seen @161244?", "senderWorkerId": 965, "messageId": 204858}, {"timeOffset": 95, "text": "No I have never seen that one.  I will have to check it out.  Growing up I always like movies like @77161  and @130591 .", "senderWorkerId": 959, "messageId": 204859}, {"timeOffset": 156, "text": "As for newer movies I really enjoyed @118338 . It was riveting.", "senderWorkerId": 959, "messageId": 204860}, {"timeOffset": 157, "text": "Those are classics.  I'd like to see @77161 or the remake @119295.", "senderWorkerId": 965, "messageId": 204861}, {"timeOffset": 170, "text": "I have not seen the remake.", "senderWorkerId": 959, "messageId": 204862}, {"timeOffset": 192, "text": "Have you seen @157190?", "senderWorkerId": 965, "messageId": 204863}, {"timeOffset": 234, "text": "No I have not seen that one either.  I guess I have a few to look into.  I really liked @125431 though.", "senderWorkerId": 959, "messageId": 204864}, {"timeOffset": 272, "text": "I enjoyed @144779 but never did see the original.  I felt like the sequel stood well on its own.", "senderWorkerId": 965, "messageId": 204865}, {"timeOffset": 287, "text": "I will have to check out the original!", "senderWorkerId": 965, "messageId": 204866}, {"timeOffset": 312, "text": "Well you have a wonderful evening I hope I helped.", "senderWorkerId": 959, "messageId": 204867}, {"timeOffset": 326, "text": "You certainly have!  Thanks!", "senderWorkerId": 965, "messageId": 204868}, {"timeOffset": 335, "text": "Thank you, good bye.", "senderWorkerId": 959, "messageId": 204869}, {"timeOffset": 385, "text": "Goodbye.", "senderWorkerId": 965, "messageId": 204870}], "conversationId": "20277", "respondentWorkerId": 959, "initiatorWorkerId": 965, "initiatorQuestions": {"125431": {"suggested": 1, "seen": 0, "liked": 1}, "118338": {"suggested": 1, "seen": 2, "liked": 2}, "119295": {"suggested": 0, "seen": 0, "liked": 1}, "130591": {"suggested": 1, "seen": 2, "liked": 2}, "161244": {"suggested": 0, "seen": 1, "liked": 1}, "77161": {"suggested": 1, "seen": 0, "liked": 1}, "144779": {"suggested": 0, "seen": 1, "liked": 1}, "157190": {"suggested": 0, "seen": 2, "liked": 2}}}
     conv = Conversation(ex_conv)
   #  print([m.GetGenres() for m in conv.GetMessagesByChunks()])
-    conv.MessagesAndMentionsByChunks()
+    mnm = conv.MessagesAndMentionsByChunks()
+    print(conv.GetMessages()[1].GetGenres())
+    ED_next, ED_all, BERT_next, BERT_all = conv.ConversationToDataByRecommendations()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
