@@ -23,6 +23,7 @@ import json
 import torch
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
+from pathlib import Path
 import numpy as np
 from collections import defaultdict
 
@@ -71,7 +72,8 @@ if not args.no_seed:
         torch.backends.cudnn.deterministic = True
 
 # Create Tensorboard instance 
-tb = SummaryWriter(log_dir='runs/'+args.id)
+Path(args.path_to_ReDial + '/runs').mkdir(parents=True, exist_ok=True)
+tb = SummaryWriter(log_dir=args.path_to_ReDial + 'runs/' + args.id)
 
 
 
@@ -268,6 +270,7 @@ for epoch in range(args.epoch):
                     'loss_fct': args.loss_fct,
                     'g_type': args.g_type
                     }
+            Path(args.path_to_ReDial + '/Results').mkdir(parents=True, exist_ok=True)
             torch.save(state, args.path_to_ReDial+'/Results/'+args.id+'.pth')
             print('......saved.')
         
