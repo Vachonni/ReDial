@@ -480,7 +480,7 @@ def SaveExperiment(args):
     # Add this experiment
     exp[args.id] = args.__dict__
     # Save Experiement.json
-    with open(path_to_Exp + '/Experiments.json', 'w') as fp:
+    with open(path_to_Exp + 'Experiments.json', 'w') as fp:
         json.dump(exp, fp, indent=4, sort_keys=True)  
     
     
