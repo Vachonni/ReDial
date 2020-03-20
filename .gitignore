@@ -33,5 +33,5 @@ Experiments.json
 # Compute Canada #
 ##################
 
-SB_TEMPLATE_REDIAL_DATA.sh
-SB_WRAPPER.sh
+SB_*
+slurm*

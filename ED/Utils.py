@@ -457,6 +457,11 @@ OTHERS
 
 def SaveExperiment(args):
     
+    # Path where to save Experiments.json: At top of ReDial folder. 
+    # (It differs on personal computer and Compute Canada, see below) 
+    # (Can't use args.path_to_ReDial because $SLURM_TMPDIR)
+    path_to_Exp = '../'      # Exp are launch in ED or BERT or ... so go up 
+    
     # Set args.id with nb of secs since Epoch GMT time + args.a_comment
     # If args.pred_only, add a mention about it
     if args.pred_only:
@@ -464,13 +469,18 @@ def SaveExperiment(args):
     else:
         args.id = str(int(time.time())) + "__" + args.a_comment
     
+    # Adapt args.id to add GPU when trained on it
+    if args.DEVICE == 'cuda':
+        args.id += '_GPU'
+        path_to_Exp = ''      # Exp are lunch in ReDial
+    
     # Load Experiement.json
-    with open('../Experiments.json', 'r') as fp:
+    with open(path_to_Exp + 'Experiments.json', 'r') as fp:
         exp = json.load(fp)
     # Add this experiment
     exp[args.id] = args.__dict__
     # Save Experiement.json
-    with open('../Experiments.json', 'w') as fp:
+    with open(path_to_Exp + '/Experiments.json', 'w') as fp:
         json.dump(exp, fp, indent=4, sort_keys=True)  
     
     
