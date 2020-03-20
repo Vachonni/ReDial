@@ -10,6 +10,9 @@ Classes and functions for ReDial project.
 @author: nicholas
 """
 
+
+import sys
+from pathlib import Path 
 import numpy as np
 from torch.utils import data
 import torch
@@ -17,7 +20,19 @@ import time
 import json
 import scipy.stats as ss
     
+
+# Adding ReDial's folder to the sys.path for imports
+path = Path(sys.executable)
+# If using cpu, assume at root of user's machine
+if not torch.cuda.is_available():
+    path_to_ReDial = str(path.home()) + '/ReDial'
+# If not, assume Compute Canada, hence in scratch
+else:
+    path_to_ReDial = str(path.home()) + '/scratch/ReDial'
+if path_to_ReDial not in sys.path:
+    sys.path.insert(0, path_to_ReDial)
     
+
 from Objects.MetricByMentions import MetricByMentions
 
 
@@ -450,12 +465,12 @@ def SaveExperiment(args):
         args.id = str(int(time.time())) + "__" + args.a_comment
     
     # Load Experiement.json
-    with open('Experiments.json', 'r') as fp:
+    with open('../Experiments.json', 'r') as fp:
         exp = json.load(fp)
     # Add this experiment
     exp[args.id] = args.__dict__
     # Save Experiement.json
-    with open('Experiments.json', 'w') as fp:
+    with open('../Experiments.json', 'w') as fp:
         json.dump(exp, fp, indent=4, sort_keys=True)  
     
     

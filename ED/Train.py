@@ -73,7 +73,7 @@ if not args.no_seed:
 
 # Create Tensorboard instance 
 Path(args.path_to_ReDial + '/runs').mkdir(parents=True, exist_ok=True)
-tb = SummaryWriter(log_dir=args.path_to_ReDial + 'runs/' + args.id)
+tb = SummaryWriter(log_dir=args.path_to_ReDial + '/runs/' + args.id)
 
 
 
