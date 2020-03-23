@@ -35,7 +35,7 @@ if path_to_ReDial not in sys.path:
     sys.path.insert(0, path_to_ReDial)
 
 
-import Settings
+import ED.Settings as Settings
 
 
 

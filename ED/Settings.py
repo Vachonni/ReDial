@@ -13,7 +13,7 @@ All constants for ReDial
 import json
 import torch
 
-from Arguments import args 
+from ED.Arguments import args 
 
 
 

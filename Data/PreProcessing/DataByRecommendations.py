@@ -33,7 +33,7 @@ if path_to_ReDial not in sys.path:
 
 
 from Objects.Conversation import Conversation
-from Arguments import args
+from ED.Arguments import args
 
 
 

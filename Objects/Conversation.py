@@ -35,7 +35,7 @@ if path_to_ReDial not in sys.path:
 
 
 from Objects.Message import Message
-from Settings import ReD_id_2_ReD_or_id
+from ED.Settings import ReD_id_2_ReD_or_id
 
 
 
@@ -402,8 +402,10 @@ class Conversation():
             if m_n_m['message'].role == 'R::' and m_n_m['new_movies'] != []:
                 
                 # ED_DATA
+                
                 # If there is an input
                 if m_n_m['movies_mentioned'] != [] or m_n_m['genres_mentioned'] != []:
+                   
                     # Add data for every movies in this message in data_next if has rating
                     for m in m_n_m['new_movies']:
                         target = self.ReDOrIddAndRatings([m])
@@ -413,36 +415,42 @@ class Conversation():
                                             m_n_m['genres_mentioned'],
                                             target])
                 
-                # Add data for all movies to come (with ratings) in data_all 
-                target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))
-                ED_all.append([str(self.conv_id),
-                               self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
-                               m_n_m['genres_mentioned'],
-                               target])                                
+                    # Add data for all movies to come (with ratings) in data_all 
+                    target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))
+                    ED_all.append([str(self.conv_id),
+                                   self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
+                                   m_n_m['genres_mentioned'],
+                                   target])      
+                          
                    
                 # BERT_DATA
-                # Add data for every movies in this message in data_next if has rating
-                for m in m_n_m['new_movies']:
-                    target = self.ReDOrIddAndRatings([m])
-                    if target != []:
-                        BERT_next['ConvID'].append(self.conv_id)
-                        BERT_next['text'].append(m_n_m['text_mentioned'])
-                        # Convert to BERT target type
-                        B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
-                        BERT_next['ratings'].append(B_target)
+                
+                # If there is an input
+                if m_n_m['text_mentioned'] != '':
+                
+                    # Add data for every movies in this message in data_next if has rating
+                    for m in m_n_m['new_movies']:
+                        target = self.ReDOrIddAndRatings([m])
+                        if target != []:
+                            BERT_next['ConvID'].append(self.conv_id)
+                            BERT_next['text'].append(m_n_m['text_mentioned'])
+                            # Convert to BERT target type
+                            B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
+                            BERT_next['ratings'].append(B_target)
+    
+                    # Add data for all movies to come in data_all if has target
+                    target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))      
+                    BERT_all['ConvID'].append(self.conv_id)
+                    BERT_all['text'].append(m_n_m['text_mentioned'])
+                    # Convert to BERT target type
+                    B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
+                    BERT_all['ratings'].append(B_target) 
 
-                # Add data for all movies to come in data_all if has target
-                target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))      
-                BERT_all['ConvID'].append(self.conv_id)
-                BERT_all['text'].append(m_n_m['text_mentioned'])
-                # Convert to BERT target type
-                B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
-                BERT_all['ratings'].append(B_target) 
-                
-                
+            
             # Remove all movies in this message from movies_to_be_mentioned 
             for m in m_n_m['new_movies']:
                 movies_to_be_mentioned.pop(m, None)
+                
            
             
         return ED_next, ED_all, BERT_next, BERT_all
