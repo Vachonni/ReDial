@@ -98,7 +98,7 @@ MODEL_PATH.mkdir(exist_ok=True)
 
 databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
-                          train_file='Train.csv',
+                          train_file='Test.csv',
                           val_file='Val.csv',
                           label_file='labels.csv',
                           text_col='text',

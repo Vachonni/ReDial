@@ -535,7 +535,7 @@ class BertLearner(object):
         eval_loss = eval_loss / nb_eval_steps
         results = {'eval_loss': eval_loss }           
         
-        # Initialize the MetricsByMentions objects in the results
+        # Initialize the MetricsByMentions objects in the dict results
         for m in ['avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50']:
             results[m] = MetricByMentions(m)
             

@@ -60,6 +60,8 @@ class MetricByMentions:
             
     def AvrgByMentions(self):
 
+        print (self.infos)
+        
         return [mean(self.infos[i]) for i in range(9)]        
     
     
