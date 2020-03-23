@@ -542,7 +542,10 @@ class BertLearner(object):
 
         # For every prediction (one at a time), get all metrics
         for logits, labels, mentions in zip(all_logits, all_labels, l_qt_movies_mentionned):
-            
+            print(logits)
+            print(labels)
+            print(mentions)
+            print('\n')
             # Insure their is at least one target movie 
             # (if not, sample not considered)
             if labels.sum() == 0: continue
