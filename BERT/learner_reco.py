@@ -24,7 +24,7 @@ from pathlib import Path
 from torch.optim.lr_scheduler import _LRScheduler, Optimizer
 from transformers import AdamW, ConstantLRSchedule
 
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 from transformers import (WEIGHTS_NAME, BertConfig,
                                   BertForSequenceClassification, BertTokenizer,
@@ -72,6 +72,34 @@ SCHEDULES = {
             "warmup_linear": WarmupLinearSchedule,
             "warmup_cosine_hard_restarts": WarmupCosineWithHardRestartsSchedule
         }
+
+
+
+
+
+import sys
+    
+
+# Adding ReDial's folder to the sys.path for imports
+path = Path(sys.executable)
+# If using cpu, assume at root of user's machine
+if not torch.cuda.is_available():
+    path_to_ReDial = str(path.home()) + '/ReDial'
+# If not, assume Compute Canada, hence in scratch
+else:
+    path_to_ReDial = str(path.home()) + '/scratch/ReDial'
+if path_to_ReDial not in sys.path:
+    sys.path.insert(0, path_to_ReDial)
+    
+
+from Objects.MetricByMentions import MetricByMentions
+from Objects.MetricByMentions import GetMetrics
+from Objects.MetricByMentions import ToTensorboard
+
+
+
+
+
 
 class BertLearner(object):
     
@@ -337,31 +365,40 @@ class BertLearner(object):
                     global_step += 1
                     epoch_step += 1
 
+                    # Evaluate model at specified frequency
                     if self.logging_steps > 0 and global_step % self.logging_steps == 0:
                         if validate:
                             # evaluate model
                             results = self.validate()
+                            # add train_loss to results 
+                            results['train_loss'] = (tr_loss - logging_loss)/self.logging_steps
+                            # Add results to tensorboard
+                            ToTensorboard(tb_writer, results, global_step, self.model, self.metrics)
                             for key, value in results.items():
-                                tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
-                                self.logger.info("eval_{} after step {}: {}: ".format(key, global_step, value))
+                                if key == 'train_loss' or key == 'eval_loss': continue
+                                self.logger.info("eval_{} after step {}: {}: ".format(key, global_step, value.Avrg()))
                         
                         # Log metrics
+                        tb_writer.add_scalar('lr', scheduler.get_lr()[0], global_step)
                         self.logger.info("lr after step {}: {}".format(global_step, scheduler.get_lr()[0]))
                         self.logger.info("train_loss after step {}: {}".format(global_step, (tr_loss - logging_loss)/self.logging_steps))
-                        tb_writer.add_scalar('lr', scheduler.get_lr()[0], global_step)
-                        tb_writer.add_scalar('loss', (tr_loss - logging_loss)/self.logging_steps, global_step)
-
                         
                         logging_loss = tr_loss
             
-            # Evaluate the model after every epoch
+            # If evaluate the model after every epoch
             if validate:
+                # evaluate model
                 results = self.validate()
+                # add train_loss to model
+                results['train_loss'] = epoch_loss/epoch_step
+                 # Add results to tensorboard
+                ToTensorboard(tb_writer, results, epoch + 1, self.model, self.metrics)
                 for key, value in results.items():
-                    self.logger.info("eval_{} after epoch {}: {}: ".format(key, (epoch + 1), value))
+                    if key == 'train_loss' or key == 'eval_loss': continue
+                    self.logger.info("eval_{} after epoch {}: {}: ".format(key, (epoch + 1), value.Arvg()))
 
 # *** CHANGE ***   To save when NDCG improves
-                actual_NDCG = results['NDCG']
+                actual_NDCG = results['ndcg'].Avrg()
                 if actual_NDCG > self.best_NDCG:
                    self.logger.info("NDCG Improved. Saving...")
                    self.save_model()                 
@@ -371,16 +408,32 @@ class BertLearner(object):
                 
                 
             # Log metrics
+            tb_writer.add_scalar('lr', scheduler.get_lr()[0], epoch + 1)
             self.logger.info("lr after epoch {}: {}".format((epoch + 1), scheduler.get_lr()[0]))
             self.logger.info("train_loss after epoch {}: {}".format((epoch + 1), epoch_loss/epoch_step))  
             self.logger.info("\n")
             
         tb_writer.close()
+        
         return global_step, tr_loss / global_step   
+    
+    
+    
+    
     
     
     ### Evaluate the model    
     def validate(self):
+        """
+        Evaluate model on validation data. 
+
+        Returns
+        -------
+        results: a dict of eval_loss as 'loss' and all other keys
+        ('avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50')
+        as MetricsByMentions objects
+        """
+        
         self.logger.info("Running evaluation")
         
         self.logger.info("  Num examples = %d", len(self.data.val_dl.dataset))
@@ -389,7 +442,6 @@ class BertLearner(object):
         all_logits = None
         all_labels = None
         
-        
         eval_loss, eval_accuracy = 0, 0
         nb_eval_steps, nb_eval_examples = 0, 0
         
@@ -397,8 +449,7 @@ class BertLearner(object):
         out_label_ids = None
         
         
-        validation_scores = {metric['name']: 0. for metric in self.metrics}
-        
+        # GET PREDICTIONS
         for step, batch in enumerate(progress_bar(self.data.val_dl)):
             self.model.eval()
             batch = tuple(t.to(self.device) for t in batch)
@@ -473,21 +524,51 @@ class BertLearner(object):
                 preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
                 out_label_ids = np.append(out_label_ids, inputs['labels'].detach().cpu().numpy(), axis=0)
         
-        eval_loss = eval_loss / nb_eval_steps
         
-        # Evaluation metrics
-        for metric in self.metrics:
-            if metric['name'] == 'NDCG_CHRONO':
-                validation_scores[metric['name']] = \
-                    metric['function'](all_logits, all_labels, l_qt_movies_mentionned)
-            else:
-                validation_scores[metric['name']] = \
-                    metric['function'](all_logits, all_labels)
+        
+        # GET METRICS
+        # TODO: Here:
+        #   - all_logits are the Softmax predictions by line
+        #   - all_labels are ratings for every possible movies (most at 0, of course)
+        
+        # Get loss
+        eval_loss = eval_loss / nb_eval_steps
+        results = {'eval_loss': eval_loss }           
+        
+        # Initialize the MetricsByMentions objects in the results
+        results = {}
+        for m in ['avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50']:
+            results[m] = MetricByMentions(m)
+            
 
-        results = {'loss': eval_loss }
-        results.update(validation_scores)
+        # For every prediction (one at a time), get all metrics
+        for logits, labels, mentions in zip(all_logits, all_labels, l_qt_movies_mentionned):
+            
+            # Insure their is at least one target movie 
+            # (if not, sample not considered)
+            if labels.sum() == 0: continue
+            
+            # Index of targets at 1 (i.e. liked movies) 
+            targets_idx = labels.nonzero().flatten().tolist()
+            
+            # Get metrics for targets (we only care about liked movies)
+            avrg_rk, ndcg, re_1, re_10, re_50 = GetMetrics(logits, \
+                                                targets_idx, 100)    # 100 is topx value  
+                        
+            # Add metric to appropriate MetricByMentions obj
+            results['avrg_rank'].Add(avrg_rk, mentions)
+            results['ndcg'].Add(ndcg, mentions)
+            results['recall@1'].Add(re_1, mentions)
+            results['recall@10'].Add(re_10, mentions)
+            results['recall@50'].Add(re_50, mentions)
+
 
         return results
+    
+    
+    
+    
+    
     
     def save_model(self): 
         

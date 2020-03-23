@@ -19,6 +19,7 @@ Training EncodeDecoder Recommender
 #                      # 
 ########################
 
+import sys
 import json
 import torch
 from torch import optim
@@ -33,6 +34,19 @@ import Utils
 import Settings 
 from Arguments import args 
 
+
+# Adding ReDial's folder to the sys.path for imports
+path = Path(sys.executable)
+# If using cpu, assume at root of user's machine
+if not torch.cuda.is_available():
+    path_to_ReDial = str(path.home()) + '/ReDial'
+# If not, assume Compute Canada, hence in scratch
+else:
+    path_to_ReDial = str(path.home()) + '/scratch/ReDial'
+if path_to_ReDial not in sys.path:
+    sys.path.insert(0, path_to_ReDial)
+
+from Objects.MetricByMentions import ToTensorboard
 
 
 ########################
@@ -242,7 +256,7 @@ for epoch in range(args.epoch):
     Utils.PrintResults(metrics, epoch, model, ['ndcg', 'recall@1', 'recall@10', 'recall@50'])
     
     # Add results to Tensorboard 
-    Utils.ToTensorboard(tb, metrics, epoch, model, ['ndcg', 'recall@1', 'recall@10', 'recall@50'])
+    ToTensorboard(tb, metrics, epoch, model, ['ndcg', 'recall@1', 'recall@10', 'recall@50'])
     
     
     # SAVING AND PATIENCE

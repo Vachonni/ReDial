@@ -13,12 +13,10 @@ Classes and functions for ReDial project.
 
 import sys
 from pathlib import Path 
-import numpy as np
 from torch.utils import data
 import torch
 import time
 import json
-import scipy.stats as ss
     
 
 # Adding ReDial's folder to the sys.path for imports
@@ -34,7 +32,7 @@ if path_to_ReDial not in sys.path:
     
 
 from Objects.MetricByMentions import MetricByMentions
-
+from Objects.MetricByMentions import GetMetrics
 
 
 
@@ -250,14 +248,14 @@ def Eval(valid_loader, model, criterion, completion, topx=100):
                 # Index of targets at 1 (i.e. liked movies) 
                 targets_idx = targets[i].nonzero().flatten().tolist()
                 
-                # Get Ranks for targets (we only care about liked movies)
-                avrg_rk, ndcg, re_1, re_10, re_50 = Ranks(pred[i], \
+                # Get metrics for targets (we only care about liked movies)
+                avrg_rk, ndcg, re_1, re_10, re_50 = GetMetrics(pred[i], \
                                                     targets_idx, topx)       
                 
                 # Get the number of inputs mentionned before prediction
                 mentions = masks[0][i].sum(dtype=torch.uint8).item()
                 
-                # Add Ranks' results to appropriate MetricByMentions obj
+                # Add metric to appropriate MetricByMentions obj
                 metrics['avrg_rank'].Add(avrg_rk, mentions)
                 metrics['ndcg'].Add(ndcg, mentions)
                 metrics['recall@1'].Add(re_1, mentions)
@@ -273,76 +271,6 @@ def Eval(valid_loader, model, criterion, completion, topx=100):
 
 
 
-
-
-
-"""
-
-METRICS
-
-"""
-
-    
-
-# DCG (Discounted Cumulative Gain)   
-
-# Needed to compare rankings when the number of items compared are not the same
-# and/or when relevance is not binary and/or each place in ranks is revelant 
-#(not only the presence or not as in Recall)
-
-def DCG(v, top):
-    """
-    V is vector of ranks, lowest is better
-    top is the max rank considered 
-    Relevance is 1 if items in rank vector, 0 else
-    """
-    
-    discounted_gain = 0
-    
-    for i in np.round(v):
-        if i <= top:
-            discounted_gain += 1/np.log2(i+1)
-
-    return round(discounted_gain, 4)
-
-
-def nDCG(v, top, nb_values=0):
-    """
-    DCG normalized with what would be the best evaluation.
-    
-    nb_values is the max number of good values there is. If not specified or bigger 
-    than top, assumed to be same as top.
-    """
-    if nb_values == 0 or nb_values > top: nb_values = top
-    dcg = DCG(v, top)
-    idcg = DCG(np.arange(nb_values)+1, top)
-    
-    return round(dcg/idcg, 4)
-
-
-def Ranks(all_values, indices_to_rank, topx = 0):
-    """
-    Takes 2 torch tensors and return, get the ranks of indices_to_rank,
-    the ranks, average ranks, MRR and nDCG for ranks smaller than topx
-    """    
-    
-    qt_values_to_rank = len(indices_to_rank)
-    
-    # If topx not mentionned (no top), it's for all the values
-    if topx == 0: topx = len(all_values)
-    
-    # -1 because because ranking according to increasing values, we want decreasing
-    ranks = ss.rankdata((-1*all_values).cpu(), method='average')[indices_to_rank]
-        
-    ndcg = nDCG(ranks, topx, qt_values_to_rank)
-    
-    recall_1 = (ranks <= 1).sum() /  qt_values_to_rank
-    recall_10 = (ranks <= 10).sum() / qt_values_to_rank
-    recall_50 = (ranks <= 50).sum() / qt_values_to_rank    
-    
-    if ranks.sum() == 0: print('warning, should always be at least one rank')
-    
-    return ranks.mean(), ndcg, recall_1, recall_10, recall_50
 
 
 
@@ -393,58 +321,6 @@ def PrintResults(metrics, epoch, model, metrics_to_print=['ndcg']):
 
 
 
-
-
-"""
-
-TENSORBOARD
-
-"""
-
-
-
-def ToTensorboard(tb, metrics, epoch, model, metrics_to_track=['ndcg']):
-    """
-    Adding different metrics to Tensorboard for a specific epoch
-    
-    Parameters
-    ----------
-    tb: SummaryWriter obj of Tensorboard
-        Instance to write to our Tensorboard
-    metrics: dict of MetricByMentions obj
-        All metrics evaluated for an epoch.
-    epoch: int
-        The epoch concern with those results.
-    model: torch.nn.Module
-        The model we are training
-    metrics_to_track : list of str, optional
-        List of metrics that will be tracked. Correspond to keys from the metrics 
-        The default is ['ndcg'].
-
-    Returns
-    -------
-    None.
-    """
-    
-    # Keep track of losses (in same graph) when training
-    if 'train_loss' in metrics:
-        tb.add_scalars('Losses', {'train': metrics['train_loss'], \
-                                  'valid': metrics['eval_loss']}, epoch)
-    
-    # Track other metrics desired    
-    for m in metrics_to_track:
-        # Get the plot
-        fig = metrics[m].Plot()   
-        # Add to Tensorboard
-        tb.add_scalar('avrg_'+metrics[m].name, metrics[m].Avrg(), epoch)
-        tb.add_figure('avrg_'+metrics[m].name+'_by_mentions', fig, epoch)
-
-    # Track model's parameters
-    for name, weights in model.named_parameters():
-        tb.add_histogram(name, weights, epoch)
-
-
-    tb.close()
 
 
 
