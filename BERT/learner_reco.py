@@ -508,7 +508,7 @@ class BertLearner(object):
                         for (itemid, rating) in list_itemid_rating:
                             # If  itemid is -2, it's number of movies mentioned indicator
                             if itemid == -2: 
-                                l_qt_movies_mentionned.append(rating)
+                                l_qt_movies_mentionned.append(rating.item())
                                 continue
                             ratings[i, itemid] = rating
                     all_labels = torch.cat((all_labels, ratings), 0)
