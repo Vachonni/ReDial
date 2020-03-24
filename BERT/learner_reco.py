@@ -395,7 +395,7 @@ class BertLearner(object):
                 ToTensorboard(tb_writer, results, epoch + 1, self.model, self.metrics)
                 for key, value in results.items():
                     if key == 'train_loss' or key == 'eval_loss': continue
-                    self.logger.info("eval_{} after epoch {}: {}: ".format(key, (epoch + 1), value.Arvg()))
+                    self.logger.info("eval_{} after epoch {}: {}: ".format(key, (epoch + 1), value.Avrg()))
 
 # *** CHANGE ***   To save when NDCG improves
                 actual_NDCG = results['ndcg'].Avrg()
