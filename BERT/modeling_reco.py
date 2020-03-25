@@ -50,6 +50,9 @@ def loss_fct(logits, labels):
                 ratings_mask[i, itemid] = 1
    #     masked_ratings = ratings * ratings_mask
         
+        # Trying to add this line to resolve the BCE error Assertion `input >= 0. && input <= 1.` failed.
+        logits = torch.where(torch.isnan(logits), torch.zeros_like(logits), logits)
+        
         return BCELoss()((logits * ratings_mask).softmax(dim=1), ratings)        
     # If not, use regular BCE
     else:
@@ -210,7 +213,7 @@ class BertForMultiLabelSequenceClassification(BertForSequenceClassification):
         pooled_output = outputs[1]
 
         pooled_output = self.dropout(pooled_output)
-        logits = self.classifier(pooled_output)  #self.classfier just a Linear layer giving righ size
+        logits = self.classifier(pooled_output)  #self.classfier just a Linear layer giving right size
 
         # add hidden states and attention if they are here
         outputs = (logits,) + outputs[2:]
