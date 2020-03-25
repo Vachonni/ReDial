@@ -272,7 +272,7 @@ class BertLearner(object):
     ### Train the model ###    
     def fit(self, epochs, lr, validate=True, schedule_type="warmup_cosine", optimizer_type='lamb'):
         
-        tensorboard_dir = self.output_dir/'tensorboard'
+        tensorboard_dir = self.output_dir/'runs/' + self.exp_id
         tensorboard_dir.mkdir(exist_ok=True)
         print(tensorboard_dir)
         
@@ -571,7 +571,7 @@ class BertLearner(object):
     
     def save_model(self): 
         
-        path = self.output_dir/'model_out'
+        path = self.output_dir/'Results/' + self.exp_id
         path.mkdir(exist_ok=True)
         
         torch.cuda.empty_cache() 

@@ -26,6 +26,8 @@ From FAST-BERT example at:
 
 """
 
+import time
+import json
 from pathlib import Path
 import random
 import numpy as np
@@ -40,17 +42,44 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Bert for recommendation')
 
+parser.add_argument('--a_comment',type=str, metavar='', default='',\
+                    help='Comment to add to name of Results and Tensorboards')
 parser.add_argument('--log_path', type=str, metavar='', default='.',\
                     help='Path where all infos will be saved.')
 parser.add_argument('--data_path', type=str, metavar='', default='.', \
                     help='Path to datasets')
 parser.add_argument('--epoch', type=int, metavar='', default=1, \
                     help='Qt of epoch')
+parser.add_argument('--lr', type=float, metavar='', default=6e-5*4, \
+                    help='Initial learning rate')
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', \
                     help='cuda ou cpu')
 
 args = parser.parse_args()
 
+
+
+
+#######################
+###                 ###
+###  EXPERIENCE_ID  ###
+###                 ###
+#######################
+
+
+# Set args.id with nb of secs since Epoch GMT time + args.a_comment
+exp_id = str(int(time.time())) + "_BERT_" + args.a_comment
+
+# Load Experiement.json
+with open('Experiments.json', 'r') as fp:
+    exp = json.load(fp)
+
+# Add this experiment
+exp[exp_id] = args.__dict__
+# Save Experiement.json
+with open('Experiments.json', 'w') as fp:
+    json.dump(exp, fp, indent=4, sort_keys=True)  
+    
 
 
 
@@ -98,7 +127,7 @@ MODEL_PATH.mkdir(exist_ok=True)
 
 databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
-                          train_file='Test.csv',
+                          train_file='Train.csv',
                           val_file='Val.csv',
                           label_file='labels.csv',
                           text_col='text',
@@ -120,9 +149,6 @@ databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
 
 
 from learner_reco import BertLearner
-from fast_bert.metrics import accuracy_thresh
-
-
 
 
 import logging
@@ -152,6 +178,9 @@ learner = BertLearner.from_pretrained_model(
 						multi_label=True,
 						logging_steps=0)
 
+# Add experience id argument to the learner instance
+learner.exp_id = exp_id
+
 
 #%%
 
@@ -164,7 +193,7 @@ learner = BertLearner.from_pretrained_model(
 print('hello again')
 
 learner.fit(epochs=args.epoch,
-			lr=6e-5*4,
+			lr=args.lr,
 			validate=True,        	# Evaluate the model after each epoch
 			schedule_type="warmup_cosine",
 			optimizer_type="lamb")
