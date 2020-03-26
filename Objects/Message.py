@@ -18,6 +18,7 @@ Class Message
 import sys
 from pathlib import Path 
 import torch
+import json
 from nltk.tokenize import word_tokenize
 from nltk.stem.porter import PorterStemmer
 import re
@@ -41,7 +42,47 @@ import ED.Settings as Settings
 
 
 
+#####################
+### TEXT MANAGEMENT 
+#####################
+
+
+# TO EXTRACT Movies Mentions with @
 re_filmId = re.compile('@[0-9]{5,6}')
+
+# Knowledge Base of movies (from IMDB)
+with open('/Users/nicholas/ReDial/Data/PreProcessed/KB_IMDB_movies.json', 'r') as fp:
+    KB = json.load(fp)
+
+
+# Functions called by .sub
+# A re method to substitue matching pattern in a string
+# Here, substitute film ID with film NL title + str(list on genre)
+
+def filmIdtoTitle(match):
+
+    filmId = match.group()[1:]               # Remove @     
+    
+    return KB[filmId]['title']
+
+
+def filmIdtoTitleAndGenres(match):
+    
+    filmId = match.group()[1:]               # Remove @ 
+    
+    title = KB[filmId]['title']
+    list_genres = KB[filmId]['genres']
+    
+    return title + " (" + " ".join(list_genres) + ")"
+
+
+
+
+
+
+#####################
+### CLASS MESSAGE  
+#####################
 
 
 class Message:
@@ -49,14 +90,16 @@ class Message:
     def __init__(self, message_dict, seeker_id):
         """
         Initializing a Message from a ReDial message dict 
-        (which are in a list of messages inb a Conversation)
+        (which are in a list of messages in a Conversation)
 
         Parameters
         ----------
-        message_dict : TYPE: dict.
+        message_dict : TYPE: dict
                        FORMAT: {"messageId": int, "text": str, 
                                 "timeOffset": int, "senderWorkerId": int}
                        DESCRIPTION: A message dict from ReDial
+        seeker_id : TYPE: int
+                    DESCRIPTION: Id of the seeker in the conversation
 
         Returns
         -------
@@ -114,7 +157,7 @@ class Message:
         """
         
         l_movies = []
-        # Use 'regular expressions' (re) to extract movie mentions
+        # Use 'regular expressions'(re) to extract movie mentions
         l_movies = re_filmId.findall(self.text)
         
         # Remmove '@'at begining and return as str 
@@ -122,6 +165,29 @@ class Message:
     
         return l_movies
     
+        
+        
+    def TextNL(self):
+        
+        # Use 'regular expressions'(re) on a ReDial text 
+        # to change movie mention in ReD_id to Natural Language (NL) tile 
+        return re_filmId.sub(filmIdtoTitle, self.text) 
+        
+        
+        
+    def TextNLGenres(self):
+        
+        # Use 'regular expressions'(re) on a ReDial text 
+        # to change movie mention in ReD_id to Natural Language (NL) tile 
+        return re_filmId.sub(filmIdtoTitleAndGenres, self.text)   
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
