@@ -50,10 +50,10 @@ def loss_fct(logits, labels):
                 ratings_mask[i, itemid] = 1
    #     masked_ratings = ratings * ratings_mask
         
-        # Trying to add this line to resolve the BCE error Assertion `input >= 0. && input <= 1.` failed.
-        logits = torch.where(torch.isnan(logits), torch.zeros_like(logits), logits)
-        
-        return BCELoss()((logits * ratings_mask).softmax(dim=1), ratings)        
+        # Change return to resolve the BCE error Assertion `input >= 0. && input <= 1.` failed.
+        return BCEWithLogitsLoss()((logits * ratings_mask), ratings)
+        # return BCELoss()((logits * ratings_mask).softmax(dim=1), ratings)  
+      
     # If not, use regular BCE
     else:
         return BCEWithLogitsLoss()(logits, labels.view(logits.shape))
