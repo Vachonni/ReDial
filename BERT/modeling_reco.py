@@ -50,9 +50,8 @@ def loss_fct(logits, labels):
                 ratings_mask[i, itemid] = 1
    #     masked_ratings = ratings * ratings_mask
         
-        # Change return to resolve the BCE error Assertion `input >= 0. && input <= 1.` failed.
-        return BCEWithLogitsLoss()((logits * ratings_mask), ratings)
-        # return BCELoss()((logits * ratings_mask).softmax(dim=1), ratings)  
+
+        return BCELoss()((logits * ratings_mask).softmax(dim=1), ratings)  
       
     # If not, use regular BCE
     else:
