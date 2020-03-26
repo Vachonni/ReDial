@@ -46,9 +46,9 @@ parser.add_argument('--a_comment',type=str, metavar='', default='',\
                     help='Comment to add to name of Results and Tensorboards')
 parser.add_argument('--log_path', type=str, metavar='', default='.',\
                     help='Path where all infos will be saved.')
-parser.add_argument('--data_path', type=str, metavar='', default='.', \
+parser.add_argument('--data_path', type=str, metavar='', default='./Data/BERT/Next/', \
                     help='Path to datasets')
-parser.add_argument('--epoch', type=int, metavar='', default=1, \
+parser.add_argument('--epoch', type=int, metavar='', default=30, \
                     help='Qt of epoch')
 parser.add_argument('--lr', type=float, metavar='', default=6e-5*4, \
                     help='Initial learning rate')
@@ -113,7 +113,7 @@ if args.DEVICE == "cuda":
 ###                ###
 ######################
 
-from data_reco import BertDataBunch
+from BERT.data_reco import BertDataBunch
 
 
 DATA_PATH = Path(args.data_path)     # path for data files (train and val)
@@ -148,7 +148,7 @@ databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
 ######################
 
 
-from learner_reco import BertLearner
+from BERT.learner_reco import BertLearner
 
 
 import logging

@@ -15,26 +15,11 @@ Class Message
 """
 
 
-import sys
-from pathlib import Path 
-import torch
+
 import json
 from nltk.tokenize import word_tokenize
 from nltk.stem.porter import PorterStemmer
 import re
-
-
-# Adding ReDial's folder to the sys.path for imports
-path = Path(sys.executable)
-# If using cpu, assume at root of user's machine
-if not torch.cuda.is_available():
-    path_to_ReDial = str(path.home()) + '/ReDial'
-# If not, assume Compute Canada, hence in scratch
-else:
-    path_to_ReDial = str(path.home()) + '/scratch/ReDial'
-if path_to_ReDial not in sys.path:
-    sys.path.insert(0, path_to_ReDial)
-
 
 import ED.Settings as Settings
 

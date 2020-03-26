@@ -19,7 +19,6 @@ Training EncodeDecoder Recommender
 #                      # 
 ########################
 
-import sys
 import json
 import torch
 from torch import optim
@@ -29,24 +28,13 @@ import numpy as np
 from collections import defaultdict
 
 # Personnal imports
-import AutoEncoders 
-import Utils
+import ED.AutoEncoders as AutoEncoders
+import ED.Utils as Utils
 import Settings 
-from Arguments import args 
-
-
-# Adding ReDial's folder to the sys.path for imports
-path = Path(sys.executable)
-# If using cpu, assume at root of user's machine
-if not torch.cuda.is_available():
-    path_to_ReDial = str(path.home()) + '/ReDial'
-# If not, assume Compute Canada, hence in scratch
-else:
-    path_to_ReDial = str(path.home()) + '/scratch/ReDial'
-if path_to_ReDial not in sys.path:
-    sys.path.insert(0, path_to_ReDial)
-
+from ED.Arguments import args 
 from Objects.MetricByMentions import ToTensorboard
+
+
 
 
 ########################

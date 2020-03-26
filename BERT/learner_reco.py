@@ -11,12 +11,10 @@ Adapting file fast-bert.modeling.py for recommendation because:
 @author: nicholas
 """
 
-import os
 from fast_bert.data_cls import BertDataBunch, InputExample, InputFeatures
 
 # *** CHANGE ***
-#from .modeling import BertForMultiLabelSequenceClassification, XLNetForMultiLabelSequenceClassification, RobertaForMultiLabelSequenceClassification, DistilBertForMultiLabelSequenceClassification
-from modeling_reco import BertForMultiLabelSequenceClassification, XLNetForMultiLabelSequenceClassification, RobertaForMultiLabelSequenceClassification, DistilBertForMultiLabelSequenceClassification
+from BERT.modeling_reco import BertForMultiLabelSequenceClassification, XLNetForMultiLabelSequenceClassification, RobertaForMultiLabelSequenceClassification, DistilBertForMultiLabelSequenceClassification
 # *** CHANGE ***
 
 from pathlib import Path
@@ -75,27 +73,10 @@ SCHEDULES = {
 
 
 
-
-
-import sys
-    
-
-# Adding ReDial's folder to the sys.path for imports
-path = Path(sys.executable)
-# If using cpu, assume at root of user's machine
-if not torch.cuda.is_available():
-    path_to_ReDial = str(path.home()) + '/ReDial'
-# If not, assume Compute Canada, hence in scratch
-else:
-    path_to_ReDial = str(path.home()) + '/scratch/ReDial'
-if path_to_ReDial not in sys.path:
-    sys.path.insert(0, path_to_ReDial)
-    
-
 from Objects.MetricByMentions import MetricByMentions
 from Objects.MetricByMentions import GetMetrics
 from Objects.MetricByMentions import ToTensorboard
-
+from Settings import nb_movies_ReDial
 
 
 
@@ -117,7 +98,7 @@ class BertLearner(object):
 # *** CHANGE ***
 # If in recommender case        
         if dataBunch.labels == ['ratings']:
-            config = config_class.from_pretrained(pretrained_path, num_labels=6924)
+            config = config_class.from_pretrained(pretrained_path, num_labels=nb_movies_ReDial)
 # If multi-label
         else:
             config = config_class.from_pretrained(pretrained_path, num_labels=len(dataBunch.labels))

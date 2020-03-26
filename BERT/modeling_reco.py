@@ -205,8 +205,7 @@ class BertForMultiLabelSequenceClassification(BertForSequenceClassification):
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, labels=None,
                 position_ids=None, head_mask=None):
 
-        import pdb
-        # pdb.set_trace()
+
         outputs = self.bert(input_ids, position_ids=position_ids, token_type_ids=token_type_ids,
                             attention_mask=attention_mask, head_mask=head_mask)
         pooled_output = outputs[1]
