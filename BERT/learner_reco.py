@@ -95,7 +95,7 @@ if path_to_ReDial not in sys.path:
 from Objects.MetricByMentions import MetricByMentions
 from Objects.MetricByMentions import GetMetrics
 from Objects.MetricByMentions import ToTensorboard
-
+from ED.Settings import nb_movies_ReDial
 
 
 
@@ -118,7 +118,7 @@ class BertLearner(object):
 # *** CHANGE ***
 # If in recommender case        
         if dataBunch.labels == ['ratings']:
-            config = config_class.from_pretrained(pretrained_path, num_labels=48272)
+            config = config_class.from_pretrained(pretrained_path, num_labels=nb_movies_ReDial)
 # If multi-label
         else:
             config = config_class.from_pretrained(pretrained_path, num_labels=len(dataBunch.labels))
