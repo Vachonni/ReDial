@@ -51,7 +51,7 @@ def loss_fct(logits, labels):
    #     masked_ratings = ratings * ratings_mask
         
 
-        return BCELoss()((logits * ratings_mask).softmax(dim=1), ratings)  
+        return BCELoss()((logits.softmax(dim=1) * ratings_mask), ratings)  
       
     # If not, use regular BCE
     else:

@@ -319,7 +319,7 @@ OTHERS
 
 def SaveExperiment(args):
         
-    args.id = str(int(time.time())) + args.a_comment
+    args.id = str(int(time.time())) + '_ED_' + args.a_comment
     
     # Load Experiement.json
     with open('Experiments.json', 'r') as fp:
