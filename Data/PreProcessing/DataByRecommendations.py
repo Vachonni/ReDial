@@ -15,10 +15,10 @@ Creating data for ED and BERT_Reco models
 import json
 from collections import defaultdict
 import pandas as pd
+from pathlib import Path
 
 
 from Objects.Conversation import Conversation
-from ED.Arguments import args
 
 
 
@@ -64,7 +64,7 @@ def ReDialDataToEDData(ReDial_data):
     
     BERT_next : TYPE **ONE** defaultdict(list) where each keys has values for all dataset
         FORMAT:{
-                ConID: int,
+                ConvID: int,
                 text: str, 
                 ratings: "[(ReD_or_id, ratings)]" -> starts with (-2,qt_mentioned) fills (-1,0)
                 }
@@ -72,7 +72,7 @@ def ReDialDataToEDData(ReDial_data):
     
     BERT_all : TYPE: **ONE** defaultdict(list) where each keys has values for all dataset
         FORMAT:{
-                ConID: [int],
+                ConvID: [int],
                 text: [str], 
                 ratings: "[[(ReD_or_id, ratings)]]" -> starts with (-2,qt_mentioned) fills (-1,0)
                 }
@@ -113,9 +113,9 @@ if __name__ == '__main__':
     
     # tTrain, valid and test data paths
     paths_to_data = {
-                    'Train': args.path_to_ReDial+'/Data/Split/train_data.jsonl',
-                    'Val': args.path_to_ReDial+'/Data/Split/val_data.jsonl',
-                    'Test': args.path_to_ReDial+'/Data/Split/test_data.jsonl'
+                    'Train': '/Users/nicholas/ReDial/Data/Split/train_data.jsonl',
+                    'Val': '/Users/nicholas/ReDial/Data/Split/val_data.jsonl',
+                    'Test': '/Users/nicholas/ReDial/Data/Split/test_data.jsonl'
                     }
 
 
@@ -156,26 +156,52 @@ if __name__ == '__main__':
             for line in fp:
                 ReDial_data.append(json.loads(line))    
         
+       
         # Get processed data
         ED_next, ED_all, BERT_next, BERT_all = ReDialDataToEDData(ReDial_data)
             
-        # Save ED_next pre-processed data
-        save_path = args.path_to_ReDial+'/Data/ED/Next/'+kind+'.json'
+        
+        # Save ED data
+        
+        # ED_next 
+        save_path = '/Users/nicholas/ReDial/Data/ED/Next/'+kind+'.json'
         with open(save_path, 'w') as fp:
             json.dump(ED_next, fp)   
-
-        # Save ED_all pre-processed data
-        save_path = args.path_to_ReDial+'/Data/ED/All/'+kind+'.json'
+        # ED_all 
+        save_path = '/Users/nicholas/ReDial/Data/ED/All/'+kind+'.json'
         with open(save_path, 'w') as fp:
             json.dump(ED_all, fp)   
 
-        # Save BERT_next pre-processed data
-        df = pd.DataFrame(BERT_next)
-        df.to_csv(args.path_to_ReDial+'/Data/BERT/Next/'+kind+'.csv', index=False)
+        
+        # Save BERT data
+                
+        # Link between key and file name
+        key_file = {'text_raw': 'TextRaw/', 'text_nl': 'TextNL/', \
+                    'text_nl_genres': 'TextNLGenres/'}        
+        
+        # Split each BERT results in 3 dicts, for 3 types of data, and save
+        for k, file in key_file.items():
+            
+            # BERT_next split
+            sub_BERT_next = {'ConvID': BERT_next['ConvID'], \
+                             'text': BERT_next[k], \
+                             'ratings': BERT_next['ratings']   }
+            # Save BERT_next 
+            df = pd.DataFrame(sub_BERT_next)
+            path = Path('/Users/nicholas/ReDial/Data/BERT/Next/', file)
+            path.mkdir(parents=True, exist_ok=True)
+            df.to_csv(Path(path, kind+'.csv'), index=False)
 
-        # Save BERT_all pre-processed data
-        df = pd.DataFrame(BERT_all)
-        df.to_csv(args.path_to_ReDial+'/Data/BERT/All/'+kind+'.csv', index=False)
+
+            # BERT_all split
+            sub_BERT_all = {'ConvID': BERT_all['ConvID'], \
+                             'text': BERT_all[k], \
+                             'ratings': BERT_all['ratings']   }
+            # Save BERT_next 
+            df = pd.DataFrame(sub_BERT_all)
+            path = Path('/Users/nicholas/ReDial/Data/BERT/All/', file)
+            path.mkdir(parents=True, exist_ok=True)
+            df.to_csv(Path(path, kind+'.csv'), index=False)
 
 
 

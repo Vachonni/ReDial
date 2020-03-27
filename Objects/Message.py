@@ -21,7 +21,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem.porter import PorterStemmer
 import re
 
-import ED.Settings as Settings
+import Settings as Settings
 
 
 
@@ -93,7 +93,7 @@ class Message:
         
         self.speaker_id = message_dict['senderWorkerId']
         self.role = 'S::' if seeker_id == self.speaker_id else 'R::'
-        self.text = message_dict['text']
+        self.text_raw = message_dict['text']
         
         
         
@@ -114,7 +114,7 @@ class Message:
         genres_lem = [PorterStemmer().stem(word) for word in Settings.genres]
         
         # Spit str by words after lowering case
-        text_token = word_tokenize(self.text.lower())
+        text_token = word_tokenize(self.text_raw.lower())
         # Lemmatize text
         text_token_lem = [PorterStemmer().stem(word) for word in text_token]
         
@@ -143,7 +143,7 @@ class Message:
         
         l_movies = []
         # Use 'regular expressions'(re) to extract movie mentions
-        l_movies = re_filmId.findall(self.text)
+        l_movies = re_filmId.findall(self.text_raw)
         
         # Remmove '@'at begining and return as str 
         l_movies = [m[1:] for m in l_movies]
@@ -156,7 +156,7 @@ class Message:
         
         # Use 'regular expressions'(re) on a ReDial text 
         # to change movie mention in ReD_id to Natural Language (NL) tile 
-        return re_filmId.sub(filmIdtoTitle, self.text) 
+        return re_filmId.sub(filmIdtoTitle, self.text_raw) 
         
         
         
@@ -164,7 +164,7 @@ class Message:
         
         # Use 'regular expressions'(re) on a ReDial text 
         # to change movie mention in ReD_id to Natural Language (NL) tile 
-        return re_filmId.sub(filmIdtoTitleAndGenres, self.text)   
+        return re_filmId.sub(filmIdtoTitleAndGenres, self.text_raw)   
         
         
         

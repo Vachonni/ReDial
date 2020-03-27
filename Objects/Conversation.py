@@ -19,7 +19,7 @@ from collections import defaultdict
 import copy
 
 from Objects.Message import Message
-from ED.Settings import ReD_id_2_ReD_or_id
+from Settings import ReD_id_2_ReD_or_id
 
 
 
@@ -111,7 +111,7 @@ class Conversation():
         for message in messages[1:]:
             # If same speaker, just add the text
             if actual_speaker == message.speaker_id:
-                chunked_message.text += ' ' + message.text   
+                chunked_message.text_raw += ' ' + message.text_raw   
             # If it changes speaker, add actual to by_chucks and initialise new Message
             else:   
                 by_chucks.append(chunked_message)
@@ -153,6 +153,8 @@ class Conversation():
         m_n_m = defaultdict(list)
         # Init 'text_mentioned' to '' since it's not a list
         m_n_m['text_mentioned'] = ''
+        m_n_m['text_mentioned_nl'] = ''
+        m_n_m['text_mentioned_nl_genres'] = ''
         
         messages = self.GetMessagesByChunks()
         
@@ -180,9 +182,14 @@ class Conversation():
             if message.role == 'S::':
                 m_n_m['genres_mentioned'] += new_genres  
             # Add text mentioned in this message to the previous. Include role.
-            m_n_m['text_mentioned'] += message.role + ' ' + message.text +'  '
+            m_n_m['text_mentioned'] += message.role + ' ' + message.text_raw +'  '
+            m_n_m['text_mentioned_nl'] += message.role + ' ' + message.TextNL() +'  '
+            m_n_m['text_mentioned_nl_genres'] += message.role + ' ' + \
+                                                          message.TextNLGenres() +'  '
             
+        
         return messages_and_mentions
+
 
 
 
@@ -417,7 +424,9 @@ class Conversation():
                         target = self.ReDOrIddAndRatings([m])
                         if target != []:
                             BERT_next['ConvID'].append(self.conv_id)
-                            BERT_next['text'].append(m_n_m['text_mentioned'])
+                            BERT_next['text_raw'].append(m_n_m['text_mentioned'])
+                            BERT_next['text_nl'].append(m_n_m['text_mentioned_nl'])
+                            BERT_next['text_nl_genres'].append(m_n_m['text_mentioned_nl_genres'])
                             # Convert to BERT target type
                             B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
                             BERT_next['ratings'].append(B_target)
@@ -425,7 +434,9 @@ class Conversation():
                     # Add data for all movies to come in data_all if has target
                     target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))      
                     BERT_all['ConvID'].append(self.conv_id)
-                    BERT_all['text'].append(m_n_m['text_mentioned'])
+                    BERT_all['text_raw'].append(m_n_m['text_mentioned'])
+                    BERT_all['text_nl'].append(m_n_m['text_mentioned_nl'])
+                    BERT_all['text_nl_genres'].append(m_n_m['text_mentioned_nl_genres'])
                     # Convert to BERT target type
                     B_target = self.BERTTarget(target, m_n_m['movies_mentioned'])
                     BERT_all['ratings'].append(B_target) 
