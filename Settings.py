@@ -13,7 +13,7 @@ All constants for ReDial
 import json
 import torch
 
-from ED.Arguments import args 
+#from ED.Arguments import args 
 
 
 
@@ -31,10 +31,10 @@ genres = ['thriller', 'comedy', 'family', 'fantasy', 'sport', 'drama', 'music',
 
 
 # Load dictionary of conversions between ReD_id and ReD_or_id
-with open(args.path_to_ReDial + '/Data/PreProcessed/ReD_id_2_ReD_or_id.json', 'r') as fp:
+with open('/Data/PreProcessed/ReD_id_2_ReD_or_id.json', 'r') as fp:
     ReD_id_2_ReD_or_id = json.load(fp)
 
 
 
 # Get the popularity vector (Numpy Array where idx are ReD_or_id and values are number of mentions)
-popularity = torch.load(args.path_to_ReDial + '/Data/PreProcessed/popularity.pth').float()
+popularity = torch.load('/Data/PreProcessed/popularity.pth').float()
