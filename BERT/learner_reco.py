@@ -15,6 +15,7 @@ from fast_bert.data_cls import BertDataBunch, InputExample, InputFeatures
 
 # *** CHANGE ***
 from BERT.modeling_reco import BertForMultiLabelSequenceClassification, XLNetForMultiLabelSequenceClassification, RobertaForMultiLabelSequenceClassification, DistilBertForMultiLabelSequenceClassification
+import json
 # *** CHANGE ***
 
 from pathlib import Path
@@ -345,7 +346,7 @@ class BertLearner(object):
                     global_step += 1
                     epoch_step += 1
 
-                    # Evaluate model at specified frequency
+                    # Evaluate model during epoch, at specified frequency
                     if self.logging_steps > 0 and global_step % self.logging_steps == 0:
                         if validate:
                             # evaluate model
@@ -381,6 +382,7 @@ class BertLearner(object):
                 actual_NDCG = results['ndcg'].Avrg()
                 if actual_NDCG > self.best_NDCG:
                    self.logger.info("NDCG Improved. Saving...")
+                   self.results_to_save = results
                    self.save_model()                 
                    self.logger.info("\n                       ...saved")
                    self.best_NDCG = actual_NDCG 
@@ -561,6 +563,11 @@ class BertLearner(object):
         
         # save the tokenizer
         self.data.tokenizer.save_pretrained(path)
+        
+        # save the metrics
+        with open(Path(path, 'metrics.json'), 'w') as f:
+            json.dump(self.results_to_save, f)
+    
     
     
     ### Return Predictions ###
