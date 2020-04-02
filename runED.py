@@ -177,10 +177,12 @@ print('******* Creating torch datasets *******')
 if not args.pred_only:
     train_dataset = Utils.RnGChronoDataset(train_data, genres_Inter, \
                                            nb_movies, Settings.popularity, args.DEVICE, \
-                                           args.exclude_genres, args.top_cut)
+                                           args.exclude_genres, args.no_popularity, 
+                                           args.top_cut)
 valid_dataset = Utils.RnGChronoDataset(valid_data, genres_Inter, \
                                        nb_movies, Settings.popularity, args.DEVICE,  \
-                                       args.exclude_genres, args.top_cut)
+                                       args.exclude_genres, args.no_popularity, \
+                                       args.top_cut)
     
 
 ######## CREATE DATALOADER

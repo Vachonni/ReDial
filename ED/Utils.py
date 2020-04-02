@@ -49,12 +49,13 @@ class RnGChronoDataset(data.Dataset):
     """
     
     def __init__(self, RnGlist, dict_genresInter_idx_UiD, nb_movies, popularity, DEVICE, \
-                 exclude_genres=False, top_cut=100):
+                 exclude_genres=False, no_popularity=False, top_cut=100):
         self.RnGlist = RnGlist
         self.dict_genresInter_idx_UiD = dict_genresInter_idx_UiD
         self.nb_movies = nb_movies
         self.popularity = popularity
         self.DEVICE = DEVICE
+        self.no_popularity = no_popularity
         self.exclude_genres = exclude_genres
         self.top_cut = top_cut
         
@@ -103,12 +104,13 @@ class RnGChronoDataset(data.Dataset):
                     genres[uid] = 1.0
                     
                 """normalization and popularity"""
-                # Include popularity in genres
-                genres = genres * self.popularity
-                # Take top 100 movies
-                genres_cut = torch.zeros(self.nb_movies)
-                genres_cut[genres.topk(self.top_cut)[1]] = genres.topk(self.top_cut)[0]
-                genres = genres_cut  
+                if not self.no_popularity:
+                    # Include popularity in genres
+                    genres = genres * self.popularity
+                    # Take top 100 movies
+                    genres_cut = torch.zeros(self.nb_movies)
+                    genres_cut[genres.topk(self.top_cut)[1]] = genres.topk(self.top_cut)[0]
+                    genres = genres_cut  
                 # Normalize vector
                 genres = torch.nn.functional.normalize(genres, dim=0)
         

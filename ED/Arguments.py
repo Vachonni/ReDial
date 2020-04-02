@@ -36,6 +36,8 @@ parser.add_argument('--dataTrain', type=str, metavar='', default='Train.json', \
                     help='File name of Dataset to train on')
 parser.add_argument('--dataValid', type=str, metavar='', default='Val.json', \
                     help='File name of Dataset to for validation')
+parser.add_argument('--no_popularity', default=False, action='store_true', \
+                    help='If arg added, popularity vector not used in input')    
 parser.add_argument('--exclude_genres', default=False, action='store_true', \
                     help='If arg added, genres not used in input (Dataset part empty for genres)')
 
