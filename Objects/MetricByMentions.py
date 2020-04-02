@@ -263,9 +263,10 @@ def ToTensorboard(tb, metrics, epoch, model, metrics_to_track=['ndcg']):
         tb.add_scalar('avrg_'+metrics[m].name, metrics[m].Avrg(), epoch)
         tb.add_figure('avrg_'+metrics[m].name+'_by_mentions', fig, epoch)
 
-    # Track model's parameters
-    for name, weights in model.named_parameters():
-        tb.add_histogram(name, weights, epoch)
+    # Track model's parameters (if not None)
+    if model != None:
+        for name, weights in model.named_parameters():
+            tb.add_histogram(name, weights, epoch)
 
 
     tb.close()

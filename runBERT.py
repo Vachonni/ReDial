@@ -237,7 +237,7 @@ elif args.pre_model != None:
     tb_writer = SummaryWriter(tensorboard_dir)
         
     # Get results    
-    results = learner.validate
+    results = learner.validate()
     
     # Add results to tensorboard
     ToTensorboard(tb_writer, results, 0, learner.model, metrics)
