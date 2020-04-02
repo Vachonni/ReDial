@@ -240,7 +240,7 @@ elif args.pre_model != None:
     results = learner.validate
     
     # Add results to tensorboard
-    ToTensorboard(tb_writer, results, 0, learner.model, learner.metrics)
+    ToTensorboard(tb_writer, results, 0, learner.model, metrics)
     for key, value in results.items():
         if key == 'train_loss' or key == 'eval_loss': continue
         logger.info("{} : {}: ".format(key, value.Avrg()))
