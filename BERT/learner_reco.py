@@ -564,9 +564,13 @@ class BertLearner(object):
         # save the tokenizer
         self.data.tokenizer.save_pretrained(path)
         
-        # save the metrics
+        # save the metrics, only the average by mentions
+        for key, value in self.results_to_save.items():
+            if key == 'train_loss' or key == 'eval_loss': continue
+            self.results_to_save[key] = value.AvrgByMentions()
+            
         with open(Path(path, 'metrics.json'), 'w') as f:
-            json.dump(self.results_to_save, f)
+            json.dump(self.results_to_save, f, indent=4)
     
     
     
