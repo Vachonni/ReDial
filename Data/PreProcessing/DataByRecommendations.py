@@ -164,12 +164,14 @@ if __name__ == '__main__':
         # Save ED data
         
         # ED_next 
-        save_path = '/Users/nicholas/ReDial/Data/ED/Next/'+kind+'.json'
-        with open(save_path, 'w') as fp:
+        save_path = Path('/Users/nicholas/ReDial/Data/ED/Next/')
+        save_path.mkdir(parents=True, exist_ok=True)
+        with open(Path(save_path, kind+'.json'), 'w') as fp:
             json.dump(ED_next, fp)   
         # ED_all 
-        save_path = '/Users/nicholas/ReDial/Data/ED/All/'+kind+'.json'
-        with open(save_path, 'w') as fp:
+        save_path = Path('/Users/nicholas/ReDial/Data/ED/All/')
+        save_path.mkdir(parents=True, exist_ok=True)
+        with open(Path(save_path, kind+'.json'), 'w') as fp:
             json.dump(ED_all, fp)   
 
         

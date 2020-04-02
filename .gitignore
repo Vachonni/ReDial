@@ -27,6 +27,8 @@ Experiments.json
 /Data/PreProcessed/ReD_or_id_2_ReD_id.json
 /Data/Raw/
 /Data/Split/
+Data/BERT_no_empty_input/
+Data/ED_no_empty_input/
 OLDruns
 
 ##################
