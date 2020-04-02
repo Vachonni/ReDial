@@ -4,13 +4,9 @@
 Created on Fri Mar 13 13:43:31 2020
 
 
-Class MetricByMentions
+Class MetricByMentions  +  Metrics evaluation  +  Tensorboard updates
 
-    # - Access to elements of a Conversation in ReDial
-        
-    # - Methods:
-    #         - GetMessages to get Messages objects out of the messages dict in Conversations
-    #         - Messages by chunks of speakers
+(See information below)
 
 
 
@@ -28,6 +24,21 @@ import scipy.stats as ss
 
 
 class MetricByMentions:
+    """
+    Defines object composed of:
+        
+        self.name = str, name of the metric (ex:ndcg, recall,...)
+        
+        self.infos = defaultdict(list), where:
+                        key = int, qt of movies mentioned
+                        values = list, metric's values for a data point 
+                                       associated with this qt of movies mentioned 
+    """
+    
+    # A class variable to establish max quantity of mentions evaluated 
+    # (used in: AvrgByMentions, StdByMentions and Plot)
+    # We'll have for 0 to max_mentions-1 
+    max_mentions = 6      
     
     
     def __init__(self, name, infos=None):
@@ -44,14 +55,19 @@ class MetricByMentions:
             
             
     def Add(self, value, mentions):
-        
+        """
+        Adds a new values to the object, according to the qt of movies mentioned (key)
+        """
         self.infos[mentions].append(value)
         
         
         
         
     def Avrg(self):   
-        
+        """
+        Average of all metric's values (independant of mentions)
+        Returns a int
+        """
         return mean([value for values_by_mentions in self.infos.values() \
                      for value in values_by_mentions])
             
@@ -59,32 +75,50 @@ class MetricByMentions:
 
             
     def AvrgByMentions(self):
-        
-        return [mean(self.infos[i]) for i in range(9)]        
+        """
+        Average of all metric's values by qt of movies menitioned
+        Returns a ordered list (i.e indexes correspond from
+                                0 to MetricByMentions.max_mentions-1)
+        """
+        return [mean(self.infos[i]) for i in range(MetricByMentions.max_mentions)]        
     
     
     
     
     def StdByMentions(self):
-        
-        return [stdev(self.infos[i]) for i in range(9)]   
+        """
+        Standard Deviaition of all metric's values by qt of movies menitioned
+        Returns a ordered list (i.e indexes correspond from
+                                0 to MetricByMentions.max_mentions-1)
+        """        
+        return [stdev(self.infos[i]) for i in range(MetricByMentions.max_mentions)]   
     
     
     
         
     def Plot(self):
-        
+        """
+        Plots a double graph.
+            x - qt of movies mentioned from 0 to MetricByMentions.max_mentions-1
+            y left - values of the metric by qt of movies mentioned
+            y right - proportion of data points per qt of movies mentioned
+        Returns mathplotlib figure
+        """        
         fig, ax1 = plt.subplots()
         ax1.set_xlabel('Qt of movies mentioned before prediction')
         ax1.set_ylabel(self.name, color='darkblue')
-        ax1.errorbar(range(9), self.AvrgByMentions(), self.StdByMentions(), \
-                     elinewidth=0.5, color='darkblue')
+        ax1.plot(range(MetricByMentions.max_mentions), self.AvrgByMentions(), \
+                 color='darkblue')
         
         ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
         
-        qt_data_by_mentions = [len(self.infos[i]) for i in range(9)]
-        ax2.set_ylabel('Qt of data points', color='gray')
-        ax2.bar(range(9), qt_data_by_mentions, alpha=0.3, color='gray')
+        # How many data points in total
+        qt_data = sum(len(l_v_by_m) for l_v_by_m in self.infos.values())
+        qt_data_by_mentions = [len(self.infos[i]) / qt_data for i in \
+                               range(MetricByMentions.max_mentions)]
+        ax2.set_ylabel('Proportion in set (%)', color='gray')
+        ax2.bar(range(MetricByMentions.max_mentions), qt_data_by_mentions, \
+                alpha=0.3, color='gray')
         
         fig.tight_layout()
         plt.show()
