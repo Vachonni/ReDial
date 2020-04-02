@@ -44,14 +44,21 @@ parser = argparse.ArgumentParser(description='Bert for recommendation')
 
 parser.add_argument('--a_comment',type=str, metavar='', default='',\
                     help='Comment to add to name of Results and Tensorboards')
+    
 parser.add_argument('--log_path', type=str, metavar='', default='.',\
                     help='Path where all infos will be saved.')
 parser.add_argument('--data_path', type=str, metavar='', default='./Data/BERT/Next/', \
                     help='Path to datasets')
-parser.add_argument('--epoch', type=int, metavar='', default=30, \
+parser.add_argument('--dataPred', type=str, metavar='', default='Val.csv', \
+                    help='File to make predictions on')    
+
+parser.add_argument('--pre_model', type=str, metavar='', default=None, \
+                    help='Folder where all files for model are saved')    
+parser.add_argument('--epoch', type=int, metavar='', default=1, \
                     help='Qt of epoch')
 parser.add_argument('--lr', type=float, metavar='', default=6e-5*4, \
                     help='Initial learning rate')
+
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', \
                     help='cuda ou cpu')
 
@@ -128,7 +135,7 @@ MODEL_PATH.mkdir(exist_ok=True)
 databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
                           train_file='Train.csv',
-                          val_file='Val.csv',
+                          val_file=args.dataPred,
                           label_file='labels.csv',
                           text_col='text',
                           label_col=['ratings'],
@@ -164,9 +171,16 @@ metrics = ['ndcg', 'recall@1', 'recall@10', 'recall@50']
 
 print('hello')
 
+
+# Set pretrained model to use.
+# If nothing specified, use 'bert-base-uncased'
+if args.pre_model == None: model_to_start = 'bert-base-uncased'
+else: model_to_start = Path(args.log_path, 'Results', args.pre_model)
+
+
 learner = BertLearner.from_pretrained_model(
 						databunch,
-						pretrained_path='bert-base-uncased',
+						pretrained_path=model_to_start,
 						metrics=metrics,
 						device=device_cuda,
 						logger=logger,
@@ -192,39 +206,45 @@ learner.exp_id = exp_id
 
 print('hello again')
 
-learner.fit(epochs=args.epoch,
-			lr=args.lr,
-			validate=True,        	# Evaluate the model after each epoch
-			schedule_type="warmup_cosine",
-			optimizer_type="lamb")
+# If no fine-tuned model to start with, train
+if args.pre_model == None:
+    
+    learner.fit(epochs=args.epoch,
+    			lr=args.lr,
+    			validate=True,        	# Evaluate the model after each epoch
+    			schedule_type="warmup_cosine",
+    			optimizer_type="lamb")
 
 
 #%%
 
 ######################
 ###                ###
-###     SAVE       ###
+###     PRED       ###
 ###                ###
 ######################
 
 
-# learner.save_model()
+# If we have a fine_tuned model to start with, pred
+elif args.pre_model != None:
+    
+    from torch.utils.tensorboard import SummaryWriter    
+    from Objects.MetricByMentions import ToTensorboard
+     
+    # Create SummaryWriter for Tensorboard       
+    tensorboard_dir = Path(args.log_path, 'runs', exp_id)
+    tensorboard_dir.mkdir(parents=True, exist_ok=True)    
+    tb_writer = SummaryWriter(tensorboard_dir)
+        
+    # Get results    
+    results = learner.validate
+    
+    # Add results to tensorboard
+    ToTensorboard(tb_writer, results, 0, learner.model, learner.metrics)
+    for key, value in results.items():
+        if key == 'train_loss' or key == 'eval_loss': continue
+        logger.info("{} : {}: ".format(key, value.Avrg()))
 
-
-#%%
-
-
-texts = [
-        'I really love the Netflix original movies',
-		 'Jerk me jolly. I have a big penis, not to mention the species is thriving.',
-         'People watching Netflix movies should die',
-         'You are a big hairy ape like mamith.'
-         ]
-predictions = learner.predict_batch(texts)
-
-
-for i in range(len(predictions)):
-    print('\n\n',texts[i],'\n', predictions[i][:5])
 
 
 
