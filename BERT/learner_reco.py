@@ -601,7 +601,7 @@ class BertLearner(object):
                 outputs = self.model(**inputs)
                 logits = outputs[0]
 # *** CHANGE ***
-                if logits.size(-1) > 10000:
+                if logits.size(-1) > 1000:
                     logits = logits.softmax(dim=1)
                 elif self.multi_label:
                     print('$$$$$$$$$$$$$$$$$$  SHOULD NOT BE HERE FOR RECOMMENDAION')

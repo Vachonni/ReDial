@@ -107,6 +107,13 @@ class MetricByMentions:
         fig, ax1 = plt.subplots()
         ax1.set_xlabel('Qt of movies mentioned before prediction')
         ax1.set_ylabel(self.name, color='darkblue')
+        # Fix range of y_left axis by metric
+        if self.name == 'ndcg' or self.name == 'recall@10':
+            ax1.set_ylim(0, 0.25)
+        elif self.name == 'recall@1':
+            ax1.set_ylim(0, 0.06)
+        elif self.name == 'recall@50':
+            ax1.set_ylim(0.15, 0.5)
         ax1.plot(range(MetricByMentions.max_mentions), self.AvrgByMentions(), \
                  color='darkblue')
         
@@ -117,6 +124,7 @@ class MetricByMentions:
         qt_data_by_mentions = [len(self.infos[i]) / qt_data for i in \
                                range(MetricByMentions.max_mentions)]
         ax2.set_ylabel('Proportion in set (%)', color='gray')
+        ax2.set_ylim(0,0.3)
         ax2.bar(range(MetricByMentions.max_mentions), qt_data_by_mentions, \
                 alpha=0.3, color='gray')
         

@@ -78,7 +78,7 @@ parser.add_argument('--g_type', type=str, metavar='', default='genres', \
                     help="Parameter(s) learned for genres inputs. None: no genres, Fixed: no learning, \
                     One: one global parameter, Genres: one parameter by genres, Unit:one parameter per movie,...")
 parser.add_argument('--pre_model', type=str, metavar='', default='none', \
-                    help='Id of pre-trained model to start with. Model should \
+                    help='File name of pre-trained model to start with. Model should \
                     include a GenresWrapper of same type')
                     
                     
