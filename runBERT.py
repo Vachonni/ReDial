@@ -13,13 +13,17 @@ From FAST-BERT example at:
     Up to date code is in: fast_bert-1.4.2.tar.gz
     
     
-    
     When using Bert for Recommendation:
         use ONE label column in the data with header 'ratings' and 
         label_col = ['ratings']. 
         'ratings' column shoul have all same number of 
         examples (fill with (-1, 0) if necessary).
     
+    
+    
+Call examples for Prediction on trained model:
+     python runBERT.py --pre_model 1585326608_BERT_Next_NL_lr24e-4 --data_path ./Data/BERT_no_empty_input/Next/TextNLGenres/ --dataPred Test.csv --a_comment PREDONLY_Test_NL_24_NO_EMPTY
+
 
 
 @author: nicholas

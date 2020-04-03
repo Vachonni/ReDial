@@ -7,6 +7,11 @@ Created on Tue May 28 08:02:56 2019
 Training EncodeDecoder Recommender 
 
 
+
+Call examples for Prediction on trained model:
+    LOCAL: --pred_only --pre_model  1585328077_ED_Next_genres.pth --a_comment PREDONLY_test_genres_NO_EMPTY --dataValid Test.json --dataPATH /Data/ED_no_empty_input/Next 
+    CC: python runED.py --pred_only --pre_model 1585927941_ED_Next_genres_3EPOCH.pth --dataPATH /Data/ED/Next --dataValid Test.json --a_comment PREDONLY_Test_Genres_3EPOCH --DEVICE cuda
+
 @author: nicholas
 """
 
