@@ -67,7 +67,7 @@ for i in range(len(ED)):
     
     # Update KB_input_id
     KB_input_id[i] = {'conv_id': int(ED[i][0]),
-                      'ED': ED[i][1],
+                      'ED': ED[i],
                       'TextRaw': BERT_raw[i][1],
                       'TextNL': BERT_nl[i][1],
                       'TextNLGenres': BERT_nlg[i][1]}     
@@ -77,3 +77,5 @@ for i in range(len(ED)):
 
 with open('/Users/nicholas/ReDial/Data/PreProcessed/KB_input_id.json', 'w') as fp:
     json.dump(KB_input_id, fp)
+    
+    
