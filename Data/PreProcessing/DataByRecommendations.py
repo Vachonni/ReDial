@@ -199,7 +199,7 @@ if __name__ == '__main__':
             sub_BERT_all = {'ConvID': BERT_all['ConvID'], \
                              'text': BERT_all[k], \
                              'ratings': BERT_all['ratings']   }
-            # Save BERT_next 
+            # Save BERT_all 
             df = pd.DataFrame(sub_BERT_all)
             path = Path('/Users/nicholas/ReDial/Data/BERT/All/', file)
             path.mkdir(parents=True, exist_ok=True)
