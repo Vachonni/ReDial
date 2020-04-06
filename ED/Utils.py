@@ -37,7 +37,7 @@ class RnGChronoDataset(data.Dataset):
     
     INPUT: 
         RnGlist format is:
-            ["ConvID", [(UiD, Rating) mentionned], ["genres"], [(UiD, Rating) to be mentionned]]
+            ["user_id", [(UiD, Rating) mentionned], ["genres"], [(UiD, Rating) to be mentionned]]
         top_cut is the number of movies in genres vector
         If data from a non-chrono dataset (eg: ML), all data in mentionned (to be mentionned empty).
     
@@ -69,7 +69,7 @@ class RnGChronoDataset(data.Dataset):
         "Generate one sample of data."
         
         # Get list of movies and ratings for user number (=index) 
-        ConvID, l_inputs, l_genres, l_targets = self.RnGlist[index]
+        _, l_inputs, l_genres, l_targets = self.RnGlist[index]
         
         # Init
         inputs = torch.zeros(self.nb_movies)
