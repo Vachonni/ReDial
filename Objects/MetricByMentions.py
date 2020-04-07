@@ -114,9 +114,14 @@ class MetricByMentions:
             ax1.set_ylim(0, 0.06)
         elif self.name == 'recall@50':
             ax1.set_ylim(0.15, 0.5)
+            # Include KBDR results (manually extracted from graph on paper)   
+            ax1.plot(range(MetricByMentions.max_mentions), \
+                     [0.25, 0.335, 0.383, 0.358, 0.371, 0.379], \
+                     '--', color='tan', alpha=0.7)
+                
         ax1.plot(range(MetricByMentions.max_mentions), self.AvrgByMentions(), \
                  color='darkblue')
-        
+
         ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
         
         # How many data points in total
