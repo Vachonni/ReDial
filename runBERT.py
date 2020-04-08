@@ -147,7 +147,9 @@ databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           max_seq_length=512,
                           multi_gpu=True,
                           multi_label=True,
-                          model_type='bert')
+                          model_type='bert',
+                          clear_cache=True,
+                          no_cache=True)
 
 
 

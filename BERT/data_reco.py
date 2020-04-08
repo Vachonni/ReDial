@@ -442,7 +442,7 @@ class BertDataBunch(object):
         test_sampler = SequentialSampler(test_dataset)
         return DataLoader(test_dataset, sampler=test_sampler, batch_size=self.batch_size_per_gpu)
 
-    def get_dataset_from_examples(self, examples, set_type='train', is_test=False, no_cache=False):
+    def get_dataset_from_examples(self, examples, set_type='train', is_test=False, no_cache=True):
 
         cached_features_file = os.path.join(self.cache_dir, 'cached_{}_{}_{}_{}'.format(
             self.model_type,
