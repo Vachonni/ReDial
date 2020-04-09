@@ -31,6 +31,10 @@ class Conversation():
     # Class variable for targets of BERT Data 
     max_qt_ratings = 0
     
+    # Class variable to track users_id (increments)
+    # not *real* user since users are by Conversation, but for our chrono, we do so.
+    user_id = 0
+    
     
     
     def __init__(self, conv):
@@ -330,7 +334,7 @@ class Conversation():
         ED_next : TYPE list of list
             FORMAT:[
             [
-            Conv_id -> str, 
+            user_id -> str, 
             inputs -> [(ReD_or_id, rating)]
             genres -> [str]
             targets -> [(ReD_or_id, rating)]
@@ -341,7 +345,7 @@ class Conversation():
         ED_all : TYPE list of list
             FORMAT:[
             [
-            Conv_id -> str, 
+            user_id -> str, 
             inputs -> [(ReD_or_id, rating)]
             genres -> [str]
             targets -> [(ReD_or_id, rating)]
@@ -398,19 +402,22 @@ class Conversation():
                 for m in m_n_m['new_movies']:
                     target = self.ReDOrIddAndRatings([m])
                     if target != []:
-                        ED_next.append([str(self.conv_id),
+                        ED_next.append([str(Conversation.user_id),
                                         self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
                                         m_n_m['genres_mentioned'],
                                         target])
             
                 # Add data for all movies to come (with ratings) in data_all 
                 target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))
-                ED_all.append([str(self.conv_id),
+                ED_all.append([str(Conversation.user_id),
                                self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
                                m_n_m['genres_mentioned'],
                                target])      
                           
-                   
+                # Update user_id
+                Conversation.user_id += 1
+                
+                
                 # BERT_DATA
                 
                 # Add data for every movies in this message in data_next if has rating
@@ -470,8 +477,7 @@ if __name__ == '__main__':
     
     
     
-    
-    
+
     
     
     

@@ -43,7 +43,7 @@ def ReDialDataToEDData(ReDial_data):
     ED_next : TYPE list of list
         FORMAT:[
         [
-        Conv_id -> str, 
+        user-> str, 
         inputs -> [(ReD_or_id, rating)]
         genres -> [str]
         targets -> [(ReD_or_id, rating)]
@@ -54,7 +54,7 @@ def ReDialDataToEDData(ReDial_data):
     ED_all : TYPE list of list
         FORMAT:[
         [
-        Conv_id -> str, 
+        user_id -> str, 
         inputs -> [(ReD_or_id, rating)]
         genres -> [str]
         targets -> [(ReD_or_id, rating)]
