@@ -63,6 +63,10 @@ parser.add_argument('--epoch', type=int, metavar='', default=1, \
 parser.add_argument('--lr', type=float, metavar='', default=6e-5*4, \
                     help='Initial learning rate')
 
+parser.add_argument('--items', default=False, action='store_true', \
+                    help="If arg added, input is items (movies), output are users. \
+                          It mainly changes size of output of BERT's prediction")     
+    
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', \
                     help='cuda ou cpu')
 
@@ -196,7 +200,8 @@ learner = BertLearner.from_pretrained_model(
 						multi_gpu=True,
 						is_fp16=False,
 						multi_label=True,
-						logging_steps=0)
+						logging_steps=0,
+                        items=args.items)
 
 # Add experience id argument to the learner instance
 learner.exp_id = exp_id

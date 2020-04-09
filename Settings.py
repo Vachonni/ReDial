@@ -17,9 +17,10 @@ import torch
 
 
 
-# Number of movies in ReDial only
+# Number of movies in ReDial only   (ReDial and ML)
 nb_movies_ReDial = 6924  # 48272 
-
+# Number of unique users in ReDial
+nb_users_ReDial = 29245
 
 
 # List of genres in IMDB for ReDial movies

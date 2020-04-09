@@ -77,7 +77,7 @@ SCHEDULES = {
 from Objects.MetricByMentions import MetricByMentions
 from Objects.MetricByMentions import GetMetrics
 from Objects.MetricByMentions import ToTensorboard
-from Settings import nb_movies_ReDial
+from Settings import nb_movies_ReDial, nb_users_ReDial
 
 
 
@@ -88,7 +88,7 @@ class BertLearner(object):
     def from_pretrained_model(dataBunch, pretrained_path, output_dir, metrics, device, logger, finetuned_wgts_path=None, 
                               multi_gpu=True, is_fp16=True, loss_scale=0, warmup_steps=0, fp16_opt_level='O1',
                               grad_accumulation_steps=1, multi_label=False, max_grad_norm=1.0, adam_epsilon=1e-8, 
-                              logging_steps=100):
+                              logging_steps=100, items=False):
         
         model_state_dict = None
         
@@ -99,7 +99,10 @@ class BertLearner(object):
 # *** CHANGE ***
 # If in recommender case        
         if dataBunch.labels == ['ratings']:
-            config = config_class.from_pretrained(pretrained_path, num_labels=nb_movies_ReDial)
+            if not items:
+                config = config_class.from_pretrained(pretrained_path, num_labels=nb_movies_ReDial)
+            elif items:
+                config = config_class.from_pretrained(pretrained_path, num_labels=nb_users_ReDial)
 # If multi-label
         else:
             config = config_class.from_pretrained(pretrained_path, num_labels=len(dataBunch.labels))
