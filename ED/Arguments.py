@@ -68,7 +68,6 @@ parser.add_argument('--layer1', type=int, metavar='', default=323, \
 parser.add_argument('--layer2', type=int, metavar='', default=0, \
                     help='Integers corresponding to the second hidden layer size. 0 if none.')
 parser.add_argument('--activations', type=str, metavar='', default='relu', \
-                    choices=['relu', 'sigmoid'],\
                     help='Activations in hidden layers of the model')
 parser.add_argument('--last_layer_activation', type=str, metavar='', default='softmax', \
                     choices=['none', 'sigmoid', 'softmax'],\
