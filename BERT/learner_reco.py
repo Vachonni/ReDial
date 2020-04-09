@@ -124,12 +124,12 @@ class BertLearner(object):
             
         return BertLearner(dataBunch, model, pretrained_path, output_dir, metrics, device, logger,
                            multi_gpu, is_fp16, loss_scale, warmup_steps, fp16_opt_level, grad_accumulation_steps, 
-                           multi_label, max_grad_norm, adam_epsilon, logging_steps)
+                           multi_label, max_grad_norm, adam_epsilon, logging_steps, items)
              
         
     def __init__(self, data: BertDataBunch, model: nn.Module, pretrained_model_path, output_dir, metrics, device,logger,
                  multi_gpu=True, is_fp16=True, loss_scale=0, warmup_steps=0, fp16_opt_level='O1',
-                 grad_accumulation_steps=1, multi_label=False, max_grad_norm=1.0, adam_epsilon=1e-8, logging_steps=100):
+                 grad_accumulation_steps=1, multi_label=False, max_grad_norm=1.0, adam_epsilon=1e-8, logging_steps=100, items=False):
         
         if isinstance(output_dir, str):
             output_dir = Path(output_dir)
@@ -160,6 +160,7 @@ class BertLearner(object):
         self.model_type = data.model_type
 # *** CHANGE ***   To save when NDCG improves
         self.best_NDCG = 0
+        self.items = items
 # *** CHANGE ***       
         
         self.output_dir = output_dir
@@ -520,6 +521,9 @@ class BertLearner(object):
         eval_loss = eval_loss / nb_eval_steps
         results = {'eval_loss': eval_loss }           
         
+        # If it's for items input, qt of "mentioned users" doesn't exits, always only one.
+        if self.items:
+            MetricByMentions.max_mentions = 1
         # Initialize the MetricsByMentions objects in the dict results
         for m in ['avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50']:
             results[m] = MetricByMentions(m)
