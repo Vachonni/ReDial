@@ -34,9 +34,9 @@ Experiments.json
 #Data/BERT_no_empty_input/
 #Data/ED_no_empty_input/
 OLDruns
-/Data/BERT/Items/FullKB/Train.csv
-/Data/BERT/Items/Title/Train.csv
-/Data/BERT/Items/TGA/Train.csv
+/Data/BERT/Items_user_id_not_ConvID/FullKB/Train.csv
+/Data/BERT/Items_user_id_not_ConvID/Title/Train.csv
+/Data/BERT/Items_user_id_not_ConvID/TGA/Train.csv
 
 
 

@@ -34,7 +34,9 @@ from ast import literal_eval
 #####
 
 
+# Init. All movies in train (input or target) will have a key with value 1.
 seen_in_train = defaultdict(int)
+
 
 # Load train
 with open('/Users/nicholas/ReDial/Data/ED/All/Train.json', 'r') as fp:
@@ -52,7 +54,7 @@ for _, l_inputs, _, l_targets in train_set:
         seen_in_train[i] = 1
         
         
-        
+
         
         
 
@@ -77,7 +79,7 @@ for kos in kind_of_set:
     with open('/Users/nicholas/ReDial/Data/ED/Next/' + kos +'.json') as fp:
         dataset = json.load(fp)
         
-    # Split data accordint to presence in train
+    # Split data according to presence in train
     for datapoint in dataset:
         target, rating = datapoint[3][0]   # target is idx 3 and has one tuple in the list
         if target in seen_in_train:
