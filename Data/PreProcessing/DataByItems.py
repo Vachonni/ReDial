@@ -16,7 +16,7 @@ Creating DataByItems
 import json
 import pandas as pd
 from collections import defaultdict
-
+import random
 
 
 
@@ -29,7 +29,9 @@ with open('/Users/nicholas/ReDial/Data/PreProcessed/ReD_or_id_2_ReD_id.json', 'r
     ReD_or_id_2_ReD_id = json.load(fp)
         
   
-        
+    
+
+
 
 def ItemRatings(ED_data):
     """
@@ -52,14 +54,14 @@ def ItemRatings(ED_data):
     Returns
     -------
     item_ratings : TYPE dict of list of tuples
-        FORMAT: {ReD_or_Id:     
+        FORMAT: {ReD_or_Id -> str:     
         [ 
         (user_id -> int, 
-         ratings -> int)
+          ratings -> int)
         ]
         }
         DESCRIPTION: For each items in ED_data, list of users and the rating they 
-                     give to the item (movie)
+                      give to the item (movie)
     """
     
     # Init items ratings    
@@ -191,28 +193,50 @@ if __name__ == '__main__':
     # Using ED because has unique ordered user_id
     # Using All to get a more general item (movie) representation
     paths = {'Train': '/Users/nicholas/ReDial/Data/ED/All/Train.json', \
-             'Val': '/Users/nicholas/ReDial/Data/ED/All/Val.json', \
-             'Test': '/Users/nicholas/ReDial/Data/ED/All/Test.json'}
-    
-  
-    # Initiate dict to capture items_ratings for the 3 datasets    
-    all_sets_item_ratings = {}   
-        
+              'Val': '/Users/nicholas/ReDial/Data/ED/All/Val.json', \
+              'Test': '/Users/nicholas/ReDial/Data/ED/All/Test.json'}
+      
+    all_sets_item_ratings = {}    
     
     
     ###################    
     # REVERSE RATINGS #  
     ################### 
     
-    # For 3 datasets
+    
+    # Concatenate 3 datasets in all_data
+    all_data = []
     for dataset, datapath in paths.items():
         
         # Load data
         with open(datapath, 'r') as fp:
-            ED_data = json.load(fp)
+            data = json.load(fp)
+
+        all_data += data
         
-        # Reverse the ratings. From user's to item's ratings
-        all_sets_item_ratings[dataset] = ItemRatings(ED_data)
+    # items (ReD_or_id) to list of user's (user_id) ratings
+    all_item_ratings = ItemRatings(all_data)
+        
+        
+    ##############################    
+    # SPLIT - train, valid, test #  
+    ##############################     
+        
+    indices = list(all_item_ratings.keys()) 
+    random.shuffle(indices)
+    
+    indices_by_set = {'Train': indices[0:int(len(indices)*0.8)], \
+                      'Val': indices[int(len(indices)*0.8):int(len(indices)*0.9)], \
+                      'Test': indices[int(len(indices)*0.9):]}
+    
+    for this_set, these_indices in indices_by_set.items():  
+        
+        items_ratings_this_set = {}
+        for indice in these_indices:
+            items_ratings_this_set[str(indice)] = all_item_ratings[str(indice)]
+            
+        all_sets_item_ratings[this_set] = items_ratings_this_set
+        
         
         
         
