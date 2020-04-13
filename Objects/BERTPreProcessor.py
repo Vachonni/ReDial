@@ -160,10 +160,6 @@ class BERTPreProcessor():
         # Bert Model)
         pooler_output = dict_of_models_modules['bert'](**input_to_bert)[1].detach()
 
-        # # For cuda memmory issues
-        # if torch.cuda.is_available():
-        #     torch.cuda.empty_cache()
-        
         
         return pooler_output       
     
