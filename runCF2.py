@@ -49,7 +49,9 @@ def main(args):
     # (need for Orion, from $SLURM_TMPDIR, adapted elsewhere)
     args.logModelsPATH = args.working_dir + '/Results/Models/' + args.trial_id + '/'
     args.logInfosPATH = args.working_dir + '/Results/Infos/' + args.trial_id + '/'
-    
+    if not os.path.isdir(args.logInfosPATH): os.makedirs(args.logInfosPATH, exist_ok=True)
+    if not os.path.isdir(args.logModelsPATH): os.makedirs(args.logModelsPATH, exist_ok=True)
+
     # Making the --dataPATH 
     args.dataPATH = args.working_dir + args.dataPATH 
     
@@ -346,7 +348,6 @@ def main(args):
                     'optimizer': optimizer.state_dict(),
                     'losses': losses,
                     }
-            if not os.path.isdir(args.logModelsPATH): os.makedirs(args.logModelsPATH, exist_ok=True)
             # Save at Models directory + model.pth
             torch.save(state, args.logModelsPATH+'model.pth')
             print('......saved.')
