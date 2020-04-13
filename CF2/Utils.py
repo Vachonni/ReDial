@@ -565,8 +565,10 @@ def Prediction(pred_data, model, user_RT, item_RT, completion, \
                 pred = model(user_embed_broad, item_RT)[0]
                         
             # Make targets only those with a rating of 1        
-            l_item_id = ast.literal_eval(l_item_id)
-            l_rating = ast.literal_eval(l_rating)
+          #  l_item_id = ast.literal_eval(l_item_id)
+            l_item_id = [l_item_id]
+          #  l_rating = ast.literal_eval(l_rating)
+            l_rating = [l_rating]
             targets = [item_id for i,item_id in enumerate(l_item_id) if \
                        l_rating[i] == 1]            
             # Insure at least one movie rated 1 
