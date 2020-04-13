@@ -55,6 +55,11 @@ class BERTPreProcessor():
         The output is in a batch 1 format. (each element one line matrix format, not vector)        
         """
         
+        
+        # text can't be empty
+        if text == '': text = ' '
+        
+
         input_dict = {}
         encoded_dict = self.tokenizer.encode_plus(text, max_length=max_length)
         
@@ -89,6 +94,7 @@ class BERTPreProcessor():
     
     
     
+    
     def TextToBERTInp1Speaker(self, text, max_length=512):
         """
         From a string to a BERT input flatten and without 'token_type_ids' and
@@ -114,6 +120,7 @@ class BERTPreProcessor():
     
     
     
+    
     # def TextToBERTAvrg(self, text, max_length=512):
     #     """
     #     From a string to BERT last hidden layer averaged 
@@ -127,6 +134,7 @@ class BERTPreProcessor():
         
         
     #     return avrg_last_hidden_layer
+    
     
     
     

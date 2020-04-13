@@ -93,6 +93,9 @@ if __name__ == '__main__':
     # Treat all users
     for user_id, user_id_values in KB_users.items():
         
+        # print update
+        if user_id % 1000 == 0: print(f'Treating user {user_id}')
+        
         # Into BERT inputs
         users_raw_inputs[user_id] = \
             bert_user_prepro.TextToBERTInp1Speaker(user_id_values['text_raw'])
@@ -142,6 +145,9 @@ if __name__ == '__main__':
     
     # Treat all items
     for item_id, item_id_values in KB_items.items():
+        
+        # print update
+        if item_id % 1000 == 0: print(f'Treating user {item_id}')
         
         tga = item_id_values['title'] + \
               '. Genres: ' + item_id_values['genres'] + \
