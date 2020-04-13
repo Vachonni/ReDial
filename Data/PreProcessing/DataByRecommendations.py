@@ -24,7 +24,7 @@ from Objects.Conversation import Conversation
 
 
 
-def ReDialDataToEDData(ReDial_data):
+def ReDialDataToMLData(ReDial_data):
     """
     Takes a Redial dataset and 
     returns **FOUR** sets of data ready for ML:
@@ -81,6 +81,8 @@ def ReDialDataToEDData(ReDial_data):
     
     ED_next = []
     ED_all = []
+    CF2 = []
+    KB_users = {}
     BERT_next = defaultdict(list)
     BERT_all = defaultdict(list)
     
@@ -91,18 +93,20 @@ def ReDialDataToEDData(ReDial_data):
         # Make it a convesations obj
         conv = Conversation(conv_raw)
         
-        # Get the data in ED format
-        ED_n, ED_a, BERT_n, BERT_a = conv.ConversationToDataByRecommendations()
+        # Get the data in ML format
+        ED_n, ED_a, CF2_i, KB_users_i, BERT_n, BERT_a = conv.ConversationToDataByRecommendations()
         
         # Add data for this conv to the other conversations
         ED_next += ED_n
         ED_all += ED_a
+        CF2 += CF2_i
+        KB_users.update(KB_users_i)
         for k in BERT_n.keys():
             BERT_next[k] += BERT_n[k]
         for k in BERT_a.keys():
             BERT_all[k] += BERT_a[k]    
 
-    return ED_next, ED_all, BERT_next, BERT_all
+    return ED_next, ED_all, CF2, KB_users, BERT_next, BERT_all
 
 
 
@@ -146,7 +150,11 @@ if __name__ == '__main__':
 
    
 
+
     # TREAT ALL CONVERSATIONS
+    
+    # There is only one KB_users, hence accumulate the one from each dataset here
+    KB_users_with_dataset_key = {}
     
     for kind, path in paths_to_data.items():
         
@@ -158,7 +166,7 @@ if __name__ == '__main__':
         
        
         # Get processed data
-        ED_next, ED_all, BERT_next, BERT_all = ReDialDataToEDData(ReDial_data)
+        ED_next, ED_all, CF2, KB_users, BERT_next, BERT_all = ReDialDataToMLData(ReDial_data)
             
         
         # Save ED data
@@ -174,7 +182,27 @@ if __name__ == '__main__':
         with open(Path(save_path, kind+'.json'), 'w') as fp:
             json.dump(ED_all, fp)   
 
+
+
+        # Save CF2 data
         
+        save_path = Path('/Users/nicholas/ReDial/Data/CF2/')
+        save_path.mkdir(parents=True, exist_ok=True)
+        with open(Path(save_path, kind+'.json'), 'w') as fp:
+            json.dump(CF2, fp)   
+        
+        
+                
+        # KB_users
+        
+        # Add key 'dataset' to indicate in which the user is
+        for k, v in KB_users.items():
+            v['dataset'] = kind
+        # Updata main dict
+        KB_users_with_dataset_key.update(KB_users)
+
+
+
         # Save BERT data
                 
         # Link between key and file name
@@ -206,6 +234,13 @@ if __name__ == '__main__':
             df.to_csv(Path(path, kind+'.csv'), index=False)
 
 
+
+    # Once all sets done, save KB_users
+    
+    save_path = Path('/Users/nicholas/ReDial/Data/PreProcessed')
+    save_path.mkdir(parents=True, exist_ok=True)
+    with open(Path(save_path, 'KB_users.json'), 'w') as fp:
+        json.dump(KB_users_with_dataset_key, fp)  
 
 
 
