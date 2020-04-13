@@ -16,7 +16,7 @@ Turning users' and items' text representation into BERT...:
 
 import torch
 import json
-from transformers import BertForSequenceClassification #, BertConfig
+from transformers import BertForSequenceClassification 
 
 from Objects.BERTPreProcessor import BERTPreProcessor 
 from Settings import ReD_id_2_ReD_or_id
@@ -34,52 +34,17 @@ print('DEVICE = ', DEVICE )
 
 
 
-# LOADING
-
+# Load knowledge bases
 
 # KB_users
 with open(path_to_ReDial + '/Data/PreProcessed/KB_users.json', 'r') as fp:
     KB_users = json.load(fp)
-
 
 # KB_items
 with open(path_to_ReDial + '/Data/PreProcessed/KB_IMDB_movies.json', 'r') as fp:
     KB_items = json.load(fp)
 
 
-# BERT models
-# # First, load config and adjust it, because we'll need to output hidden layers, 
-# # which is not the default case for BertForSequenceClassification
-# config = BertConfig.from_pretrained( \
-#                 path_to_ReDial + '/Results/1586382856_BERT_Next_NL_G_lr5e-4', \
-#                 output_hidden_states = True)
-# Load BERT for users
-
-
-# BERT_users = BertForSequenceClassification.from_pretrained( \
-#                 path_to_ReDial + '/Results/1586382856_BERT_Next_NL_G_lr5e-4') #, \
-# #                config=config)
-# BERT_users.to(DEVICE)
-# BERT_users.eval()
-
-
-# Load BERT models for items
-BERT_items_full_kb = BertForSequenceClassification.from_pretrained( \
-                path_to_ReDial + '/Results/1586650446_BERT_Items_FullKB_lr5e-4_160epoch') #, \
-#                config=config)
-BERT_items_full_kb.to(DEVICE)
-BERT_items_full_kb.eval()
-BERT_items_tga = BertForSequenceClassification.from_pretrained( \
-                path_to_ReDial + '/Results/1586656383_BERT_Items_TGA_lr5e-4_160epoch') #, \
-#                config=config)
-BERT_items_tga.to(DEVICE)
-BERT_items_tga.eval()
-BERT_items_title = BertForSequenceClassification.from_pretrained( \
-                path_to_ReDial + '/Results/1586699552_BERT_Items_Title_lr5e-4_160epoch') #, \
-#                config=config)
-BERT_items_title.to(DEVICE)
-BERT_items_title.eval()
-print('Models loaded')
 
 
 
@@ -90,58 +55,99 @@ if __name__ == '__main__':
     # USERS   
     
     
-    # # Get the BERT processor for users    
-    # bert_user_prepro = BERTPreProcessor(BERT_users)
-    
-    # # Inputs. Init dict of dict of torch tensors
-    # users_raw_inputs = {}
-    # users_nl_inputs = {}
-    # users_nlg_inputs = {}
-    
-    # # Embeddings. Init torch tensors
-    # qt_users = len(KB_users)
-    # users_raw_embed = torch.empty(qt_users,768)
-    # users_nl_embed = torch.empty(qt_users,768)
-    # users_nlg_embed = torch.empty(qt_users,768)
-    
-    
-    # # Treat all users
-    # for user_id, user_id_values in KB_users.items():
-        
-    #     # print update
-    #     if int(user_id) % 1000 == 0: print(f'Treating user {user_id}')
-        
-    #     # Into BERT inputs
-    #     users_raw_inputs[user_id] = \
-    #         bert_user_prepro.TextToBERTInp1Speaker(user_id_values['text_raw'])
-    #     users_nl_inputs[user_id] = \
-    #         bert_user_prepro.TextToBERTInp1Speaker(user_id_values['text_nl'])
-    #     users_nlg_inputs[user_id] = \
-    #         bert_user_prepro.TextToBERTInp1Speaker(user_id_values['text_nlg'])
-
-    #     # Into BERT pooler embeddings
-    #     users_raw_embed[int(user_id)] = \
-    #         bert_user_prepro.TextToBERTPooler(user_id_values['text_raw'])
-    #     users_nl_embed[int(user_id)] = \
-    #         bert_user_prepro.TextToBERTPooler(user_id_values['text_nl'])
-    #     users_nlg_embed[int(user_id)] = \
-    #         bert_user_prepro.TextToBERTPooler(user_id_values['text_nlg'])
+    # Load BERT models for users    
+    BERT_users_raw = BertForSequenceClassification.from_pretrained( \
+                       path_to_ReDial + '/Results/1585354803_BERT_Next_Raw_lr96e-4') 
+    BERT_users_raw.to(DEVICE)
+    BERT_users_raw.eval()
+    BERT_users_nl = BertForSequenceClassification.from_pretrained( \
+                       path_to_ReDial + '/Results/1586295618_BERT_Next_NL_lr86e-4') 
+    BERT_users_nl.to(DEVICE)
+    BERT_users_nl.eval()    
+    BERT_users_nlg = BertForSequenceClassification.from_pretrained( \
+                       path_to_ReDial + '/Results/1586382856_BERT_Next_NL_G_lr5e-4') 
+    BERT_users_nlg.to(DEVICE)
+    BERT_users_nlg.eval()
 
     
-    # # save
-    # torch.save(users_raw_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_raw.pth')
-    # torch.save(users_nl_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_nl.pth')
-    # torch.save(users_nlg_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_nlg.pth')
-    # torch.save(users_raw_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_raw.pth')
-    # torch.save(users_nl_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_nl.pth')
-    # torch.save(users_nlg_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_nlg.pth')
+    
+    # Get the BERT processor for users    
+    bert_user_raw_prepro = BERTPreProcessor(BERT_users_raw)
+    bert_user_nl_prepro = BERTPreProcessor(BERT_users_nl)
+    bert_user_nlg_prepro = BERTPreProcessor(BERT_users_nlg)
+    
+    # Inputs. Init dict of dict of torch tensors
+    users_raw_inputs = {}
+    users_nl_inputs = {}
+    users_nlg_inputs = {}
+    
+    # Embeddings. Init torch tensors
+    qt_users = len(KB_users)
+    users_raw_embed = torch.empty(qt_users,768)
+    users_nl_embed = torch.empty(qt_users,768)
+    users_nlg_embed = torch.empty(qt_users,768)
+    
+    
+    # Treat all users
+    for user_id, user_id_values in KB_users.items():
         
+        # print update
+        if int(user_id) % 1000 == 0: print(f'Treating user {user_id}')
+        
+        # Into BERT inputs
+        users_raw_inputs[user_id] = \
+            bert_user_raw_prepro.TextToBERTInp1Speaker(user_id_values['text_raw'])
+        users_nl_inputs[user_id] = \
+            bert_user_nl_prepro.TextToBERTInp1Speaker(user_id_values['text_nl'])
+        users_nlg_inputs[user_id] = \
+            bert_user_nlg_prepro.TextToBERTInp1Speaker(user_id_values['text_nlg'])
+
+        # Into BERT pooler embeddings
+        users_raw_embed[int(user_id)] = \
+            bert_user_raw_prepro.TextToBERTPooler(user_id_values['text_raw'])
+        users_nl_embed[int(user_id)] = \
+            bert_user_nl_prepro.TextToBERTPooler(user_id_values['text_nl'])
+        users_nlg_embed[int(user_id)] = \
+            bert_user_nlg_prepro.TextToBERTPooler(user_id_values['text_nlg'])
+
+    
+    # save
+    torch.save(users_raw_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_raw.pth')
+    torch.save(users_nl_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_nl.pth')
+    torch.save(users_nlg_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_nlg.pth')
+    torch.save(users_raw_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_raw.pth')
+    torch.save(users_nl_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_nl.pth')
+    torch.save(users_nlg_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_nlg.pth')
+
+    # del to free space
+    del(BERT_users_raw)
+    del(BERT_users_nl)
+    del(BERT_users_nlg)
+    del(bert_user_raw_prepro)
+    del(bert_user_nl_prepro)
+    del(bert_user_nlg_prepro)
     
 
     
     
     # ITEMS   
     
+    
+    # Load BERT models for items
+    BERT_items_full_kb = BertForSequenceClassification.from_pretrained( \
+                    path_to_ReDial + '/Results/1586650446_BERT_Items_FullKB_lr5e-4_160epoch') 
+    BERT_items_full_kb.to(DEVICE)
+    BERT_items_full_kb.eval()
+    BERT_items_tga = BertForSequenceClassification.from_pretrained( \
+                    path_to_ReDial + '/Results/1586656383_BERT_Items_TGA_lr5e-4_160epoch')
+    BERT_items_tga.to(DEVICE)
+    BERT_items_tga.eval()
+    BERT_items_title = BertForSequenceClassification.from_pretrained( \
+                    path_to_ReDial + '/Results/1586699552_BERT_Items_Title_lr5e-4_160epoch') 
+    BERT_items_title.to(DEVICE)
+    BERT_items_title.eval()
+    print('Bert for items models loaded')
+        
     
     # Get the BERT processor for users    
     bert_item_kb_prepro = BERTPreProcessor(BERT_items_full_kb)
