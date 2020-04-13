@@ -6,13 +6,19 @@ Created on Sat Apr 11 15:33:39 2020
 
 The BERTPreProcessor object.
 
+
+
+    ***  ONLY FOR   BertForSequenceClassification   TYPE ***
+
+
+
 Takes a BERT model and a related tokenizer.
 
 Has different methods to get text into:
-    - BERT input format for batches of 1
-    - BERT input for batch > 1 and one speaker
+    - BERT input format for batches of 1. Used in TextToBERTRT to get RT one at a time
+    - BERT input for batch > 1 and one speaker. Ready to use in regular batch training
     - BERT pooler output
-    - BERT last layer output averaged 
+    - **pending** BERT last layer output averaged 
     - ...
     
 
@@ -43,7 +49,7 @@ class BERTPreProcessor():
         
 
         
-    def TextToBERTBatch1(self, text, max_length=512):
+    def TextToBERTInpBatch1(self, text, max_length=512):
         """
         From a string to a BERT input.
         The output is in a batch 1 format. (each element one line matrix format, not vector)        
@@ -83,7 +89,7 @@ class BERTPreProcessor():
     
     
     
-    def TextToBERT1Speaker(self, text, max_length=512):
+    def TextToBERTInp1Speaker(self, text, max_length=512):
         """
         From a string to a BERT input flatten and without 'token_type_ids' and
         'position_ids'. 
@@ -93,7 +99,7 @@ class BERTPreProcessor():
         The output is for batch > 1. (each element one vector)        
         """
     
-        complete_input = self.TextToBERTBatch1(text)
+        complete_input = self.TextToBERTInpBatch1(text)
         
         # Remove 'token_type_ids' and 'position_ids'
         complete_input.pop('token_type_ids')
@@ -108,19 +114,19 @@ class BERTPreProcessor():
     
     
     
-    def TextToBERTAvrg(self, text, max_length=512):
-        """
-        From a string to BERT last hidden layer averaged 
-        """
+    # def TextToBERTAvrg(self, text, max_length=512):
+    #     """
+    #     From a string to BERT last hidden layer averaged 
+    #     """
         
-        # Get text input a BERT ready input
-        input_to_bert = self.TextToBERTBatch1(text, max_length)
-        # Pass input through model. Take last hidden layer as output (idx 0)
-        last_hidden_layer = self.model(**input_to_bert)[0]
-        avrg_last_hidden_layer = last_hidden_layer.mean(dim=1)
+    #     # Get text input a BERT ready input
+    #     input_to_bert = self.TextToBERTInpBatch1(text, max_length)
+    #     # Pass input through model. Take last hidden layer as output (idx 0)
+    #     last_hidden_layer = self.model(**input_to_bert)[0]
+    #     avrg_last_hidden_layer = last_hidden_layer.mean(dim=1)
         
         
-        return avrg_last_hidden_layer
+    #     return avrg_last_hidden_layer
     
     
     
@@ -131,10 +137,20 @@ class BERTPreProcessor():
         From a string to BERT pooler output
         """
 
+        # Need the output of pooler layer. Not available by default for 
+        # BertForSequenceClassification. Hence, we need to get access to 
+        # the submodels.
+        generator_of_models_modules = self.named_children()
+        dict_of_models_modules = {}
+        for name, module in generator_of_models_modules:
+            dict_of_models_modules[name] = module
+
         # Get text input a BERT ready input
-        input_to_bert = self.TextToBERTBatch1(text, max_length)
-        # Pass input through model. Take pooler output (idx 1)
-        pooler_output = self.model(**input_to_bert)[1]
+        input_to_bert = self.TextToBERTInpBatch1(text, max_length)
+        # Pass input through 'bert' model (excludes the Dropout and \
+        # classification layer. Take pooler output (idx 1, just like regular 
+        # Bert Model)
+        pooler_output = dict_of_models_modules['bert'](**input_to_bert)[1]
 
         
         return pooler_output       

@@ -16,13 +16,13 @@ Turning users' and items' text representation into BERT...:
 
 import torch
 import json
-from transformers import BertForSequenceClassification
+from transformers import BertForSequenceClassification #, BertConfig
 
 from Objects.BERTPreProcessor import BERTPreProcessor 
 
 
 
-# Variable according to local or Compute Canada
+# Variables according to local or Compute Canada
 if torch.cuda.is_available():
     DEVICE = 'cuda'
     path_to_ReDial = '/home/vachonni/scratch/ReDial'
@@ -35,25 +35,35 @@ print('DEVICE = ', DEVICE )
 
 # LOADING
 
+
 # KB_users
 with open(path_to_ReDial + '/Data/PreProcessed/KB_users.json', 'r') as fp:
     KB_users = json.load(fp)
+
 
 # KB_items
 with open(path_to_ReDial + '/Data/PreProcessed/KB_IMDB_movies.json', 'r') as fp:
     KB_items = json.load(fp)
 
+
 # BERT models
-BERT_users = BertForSequenceClassification.from_pretrained(path_to_ReDial + \
-                                       '/Results/1586382856_BERT_Next_NL_G_lr5e-4')
+# # First, load config and adjust it, because we'll need to output hidden layers, 
+# # which is not the default case for BertForSequenceClassification
+# config = BertConfig.from_pretrained( \
+#                 path_to_ReDial + '/Results/1586382856_BERT_Next_NL_G_lr5e-4', \
+#                 output_hidden_states = True)
+# Load BERT for users
+BERT_users = BertForSequenceClassification.from_pretrained( \
+                path_to_ReDial + '/Results/1586382856_BERT_Next_NL_G_lr5e-4') #, \
+#                config=config)
 BERT_users.to(DEVICE)
 BERT_users.eval()
-
-BERT_items = BertForSequenceClassification.from_pretrained(path_to_ReDial + \
-                                       '/Results/1586656383_BERT_Items_TGA_lr5e-4_160epoch')
+# Load BERT for items
+BERT_items = BertForSequenceClassification.from_pretrained( \
+                path_to_ReDial + '/Results/1586656383_BERT_Items_TGA_lr5e-4_160epoch') #, \
+#                config=config)
 BERT_items.to(DEVICE)
 BERT_items.eval()
-
 print('Models loaded')
 
 
@@ -85,11 +95,11 @@ if __name__ == '__main__':
         
         # Into BERT inputs
         users_raw_inputs[user_id] = \
-            bert_user_prepro.TextToBERT1Speaker(user_id_values['text_raw'])
+            bert_user_prepro.TextToBERTInp1Speaker(user_id_values['text_raw'])
         users_nl_inputs[user_id] = \
-            bert_user_prepro.TextToBERT1Speaker(user_id_values['text_nl'])
+            bert_user_prepro.TextToBERTInp1Speaker(user_id_values['text_nl'])
         users_nlg_inputs[user_id] = \
-            bert_user_prepro.TextToBERT1Speaker(user_id_values['text_nlg'])
+            bert_user_prepro.TextToBERTInp1Speaker(user_id_values['text_nlg'])
 
         # Into BERT pooler embeddings
         users_raw_embed[int(user_id)] = \
@@ -139,11 +149,11 @@ if __name__ == '__main__':
         
         # Into BERT inputs
         items_full_kb_inputs[item_id] = \
-            bert_user_prepro.TextToBERT1Speaker(str(item_id_values))
+            bert_user_prepro.TextToBERTInp1Speaker(str(item_id_values))
         items_tga_inputs[user_id] = \
-            bert_user_prepro.TextToBERT1Speaker(tga)
+            bert_user_prepro.TextToBERTInp1Speaker(tga)
         items_title_inputs[user_id] = \
-            bert_user_prepro.TextToBERT1Speaker(item_id_values['title'])
+            bert_user_prepro.TextToBERTInp1Speaker(item_id_values['title'])
 
         # Into BERT pooler embeddings
         items_full_kb_embed[int(user_id)] = \
