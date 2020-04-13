@@ -148,7 +148,7 @@ class BERTPreProcessor():
         # Need the output of pooler layer. Not available by default for 
         # BertForSequenceClassification. Hence, we need to get access to 
         # the submodels.
-        generator_of_models_modules = self.named_children()
+        generator_of_models_modules = self.model.named_children()
         dict_of_models_modules = {}
         for name, module in generator_of_models_modules:
             dict_of_models_modules[name] = module
