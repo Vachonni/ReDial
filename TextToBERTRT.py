@@ -94,7 +94,7 @@ if __name__ == '__main__':
     for user_id, user_id_values in KB_users.items():
         
         # print update
-        if user_id % 1000 == 0: print(f'Treating user {user_id}')
+        if int(user_id) % 1000 == 0: print(f'Treating user {user_id}')
         
         # Into BERT inputs
         users_raw_inputs[user_id] = \
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     for item_id, item_id_values in KB_items.items():
         
         # print update
-        if item_id % 1000 == 0: print(f'Treating user {item_id}')
+        if int(item_id) % 1000 == 0: print(f'Treating user {item_id}')
         
         tga = item_id_values['title'] + \
               '. Genres: ' + item_id_values['genres'] + \
@@ -155,19 +155,19 @@ if __name__ == '__main__':
         
         # Into BERT inputs
         items_full_kb_inputs[item_id] = \
-            bert_user_prepro.TextToBERTInp1Speaker(str(item_id_values))
-        items_tga_inputs[user_id] = \
-            bert_user_prepro.TextToBERTInp1Speaker(tga)
-        items_title_inputs[user_id] = \
-            bert_user_prepro.TextToBERTInp1Speaker(item_id_values['title'])
+            bert_item_prepro.TextToBERTInp1Speaker(str(item_id_values))
+        items_tga_inputs[item_id] = \
+            bert_item_prepro.TextToBERTInp1Speaker(tga)
+        items_title_inputs[item_id] = \
+            bert_item_prepro.TextToBERTInp1Speaker(item_id_values['title'])
 
         # Into BERT pooler embeddings
-        items_full_kb_embed[int(user_id)] = \
-            bert_user_prepro.TextToBERTPooler(str(item_id_values))
-        items_tga_embed[int(user_id)] = \
-            bert_user_prepro.TextToBERTPooler(tga)
-        items_title_embed[int(user_id)] = \
-            bert_user_prepro.TextToBERTPooler(item_id_values['title'])
+        items_full_kb_embed[int(item_id)] = \
+            bert_item_prepro.TextToBERTPooler(str(item_id_values))
+        items_tga_embed[int(item_id)] = \
+            bert_item_prepro.TextToBERTPooler(tga)
+        items_title_embed[int(item_id)] = \
+            bert_item_prepro.TextToBERTPooler(item_id_values['title'])
 
     
     # save
