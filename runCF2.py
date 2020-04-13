@@ -16,18 +16,19 @@ Training Basic Transformer Recommender
 import os
 import sys
 import time
+import json
 import torch
 from torch import optim
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import matplotlib.pyplot as plt
 import concurrent.futures
 import multiprocessing
 
 # Personnal imports
-import Models
-import Utils 
-import Arguments 
+import CF2.Models as Models
+import CF2.Utils as Utils
+import CF2.Arguments as Arguments 
 
 
 
@@ -113,15 +114,24 @@ def main(args):
         args.dataValid = 'Val_LIST.csv'
     
     print('\n******* Loading TRAIN samples from *******', args.dataPATH + args.dataTrain)
-    df_train = pd.read_csv(args.dataPATH + args.dataTrain)
+    # df_train = pd.read_csv(args.dataPATH + args.dataTrain)
+    with open(args.dataPATH + args.dataTrain, 'r') as fp:
+        train_data = json.load(fp)
+    train_data = np.array(train_data)
     print('******* Loading VALID samples from *******', args.dataPATH + args.dataValid)
-    df_valid = pd.read_csv(args.dataPATH + args.dataValid)
+    # df_valid = pd.read_csv(args.dataPATH + args.dataValid)
+    with open(args.dataPATH + args.dataValid, 'r') as fp:
+        valid_data = json.load(fp)
+    valid_data = np.array(valid_data)
     print('******* Loading PRED samples from *******', args.dataPATH + args.dataPred)
-    df_pred = pd.read_csv(args.dataPATH + args.dataPred)
-    # Turn DataFrame into an numpy array (easier iteration)
-    train_data = df_train.values
-    valid_data = df_valid.values
-    pred_data = df_pred.values
+    # df_pred = pd.read_csv(args.dataPATH + args.dataPred)
+    with open(args.dataPATH + args.dataPred, 'r') as fp:
+        pred_data = json.load(fp)
+    pred_data = np.array(pred_data)    
+    # # Turn DataFrame into an numpy array (easier iteration)
+    # train_data = df_train.values
+    # valid_data = df_valid.values
+    # pred_data = df_pred.values
     
     print('\n******* Loading RT *******', args.dataPATH + args.item_RT)
     # LOAD RT - According to the model

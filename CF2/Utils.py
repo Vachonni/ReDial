@@ -20,7 +20,7 @@ from statistics import mean, stdev
 import scipy.stats as ss
 
 # Personnal imports
-import Arguments 
+import CF2.Arguments as Arguments 
 import Settings 
 
 
@@ -57,9 +57,13 @@ def GetRandomItemsAt0(user_row):
 
     """
     
+    all_movies_rated, _, _, user_id, ReD_or_id, rating = user_row
+    
     # Get real items_ids and associated ratings as numpy arrays (vectors)
-    real_items = np.array(ast.literal_eval(user_row[-2]))
-    real_values = np.array(ast.literal_eval(user_row[-1]))
+    real_items = np.array([ReD_or_id])
+    real_values = np.array([rating])
+    # real_items = np.array(ast.literal_eval(user_row[-2]))
+    # real_values = np.array(ast.literal_eval(user_row[-1]))
     
     # Get range of movies to choose from (ReDial Only or with ML?)
     if Arguments.args.dataPATH == '/Data/DataReDialML/':
@@ -67,8 +71,9 @@ def GetRandomItemsAt0(user_row):
     else:
         range_size = Settings.nb_movies_ReDial
         
-    # Get random items ids, different from real_items
-    random_ids = np.random.choice(np.setdiff1d(range(range_size), real_items), \
+    # Get random items ids, different from all_movies_rated
+    random_ids = np.random.choice(np.setdiff1d(range(range_size), \
+                                               np.array(all_movies_rated)), \
                                   Arguments.args.qt_random_ratings)
     
     # Concat random ids with real_ones
@@ -445,130 +450,6 @@ def EvalReconstruction(valid_loader, item_RT, model, model_output, criterion, \
 ########################  
 
 
-# def Prediction(pred_data, model, user_RT, item_RT, completion, \
-#                ranking_method, DEVICE, topx=100):
-#     """
-#     Prediction on targets = to be mentionned movies...
-    
-#     """
-    
-#     model.eval()
-    
-#     # For print purposes 
-#     nb_batch = len(pred_data) * completion / 100
-#     qt_of_print = 5
-#     print_count = 0
-    
-#     Avrg_Ranks = {}
-#     MRR = {}
-#     RR = {}
-#     NDCG = {}
-#     RE_1 = {}
-#     RE_10 = {}
-#     RE_50 = {}
-                
-#     pred_on_user = None
-#     l_items_id = []
-    
-    
-#     # Put on right DEVICE
-#     if hasattr(model, 'BERT'):
-#         for k_user, v_user in user_RT.items():
-#             for k, v in v_user.items():
-#                 v_user[k] = v.to(DEVICE)
-#         for k_item, v_item in item_RT.items():
-#             for k, v in v_item.items():
-#                 v_item[k] = v.to(DEVICE)
-#     else:
-#         user_RT = user_RT.to(DEVICE)
-#         item_RT = item_RT.to(DEVICE)
-        
-    
-#     with torch.no_grad():
-#         for batch_idx, (_, _, qt_movies_mentionned, user_id, item_id, rating) in enumerate(pred_data):
-            
-#             # Early stopping 
-#             if batch_idx > nb_batch or nb_batch == 0: 
-#                 print('EARLY stopping')
-#                 break
-            
-#             # Print Update
-#             if batch_idx > nb_batch / qt_of_print * print_count:
-#                 print('Batch {} out of {}'.format(batch_idx, nb_batch))
-#                 print_count += 1
-                               
-#             # # Put on right DEVICE (what will be used for prediction)
-#             # user_RT = user_RT.to(DEVICE)
-#             # item_RT = item_RT.to(DEVICE)
-            
-            
-#             ### Need to accumualte all movies for the same user (= same qt_movies_mentions)
-#             # If first time, set pred_on_user to the first one
-#             if pred_on_user == None: 
-#                 pred_on_user = user_id
-#                 pred_on_qt_m_m = qt_movies_mentionned
-#             # If we changed user 
-#             if pred_on_user != user_id:
-                
-#                 """ Make the prediction on the pred_on user """
-#                 # Get user's embedding
-#                 user_embed = user_RT[pred_on_user]
-#                 # Adapt shape for model: embedding_size -> qt_items x embedding_size 
-#                 user_embed_broad = user_embed.expand(len(item_RT), -1)
-#                 # Make predictions on all movies 
-#                 pred = model(user_embed_broad, item_RT)[0]   # model returns (pred, logits)
-                
-#                 # Insure their is at least one target movie (case where new user starts with rating 0)
-#                 # (if not, go to next item and this sample not considered (continue))
-#                 if l_items_id == []: 
-#                     if rating == 1:
-#                         l_items_id = [item_id]    
-#                     else:
-#                         l_items_id = [] 
-#                     continue
-
-#                 # ... get Ranks for targets 
-#                 ranks, avrg_rk, mrr, rr, re_1, re_10, re_50, ndcg = \
-#                                             Ranks(pred, l_items_id, ranking_method, topx)
-                
-#                 # Add Ranks results to appropriate dict
-#                 if pred_on_qt_m_m in RR.keys():
-#                     Avrg_Ranks[pred_on_qt_m_m].append(avrg_rk)
-#                     MRR[pred_on_qt_m_m].append(mrr)
-#                     RR[pred_on_qt_m_m].append(rr)
-#                     NDCG[pred_on_qt_m_m].append(ndcg)
-#                     RE_1[pred_on_qt_m_m].append(re_1)
-#                     RE_10[pred_on_qt_m_m].append(re_10)
-#                     RE_50[pred_on_qt_m_m].append(re_50)
-#                 else:
-#                     Avrg_Ranks[pred_on_qt_m_m] = [avrg_rk]
-#                     MRR[pred_on_qt_m_m] = [mrr]
-#                     RR[pred_on_qt_m_m] = [rr]
-#                     NDCG[pred_on_qt_m_m] = [ndcg]
-#                     RE_1[pred_on_qt_m_m] = [re_1]
-#                     RE_10[pred_on_qt_m_m] = [re_10]
-#                     RE_50[pred_on_qt_m_m] = [re_50]
-#                 """ Done"""   
-               
-#                 # Update pred_on with the one in the for loop, were done with pred_on
-#                 pred_on_user = user_id
-#                 pred_on_qt_m_m = qt_movies_mentionned
-#                 if rating == 1:
-#                     l_items_id = [item_id]    
-#                 else:
-#                     l_items_id = [] 
-                
-            
-#             # If same user, add information
-#             else:
-#                 # Prediction only on positive mentions
-#                 if rating == 1:
-#                     l_items_id.append(item_id)
-            
-            
-
-#     return Avrg_Ranks, MRR, RR, RE_1, RE_10, RE_50, NDCG
-
 
 
 def GetBertEmbeds(model, RT, DEVICE):
@@ -607,145 +488,6 @@ def GetBertEmbeds(model, RT, DEVICE):
     return embed_RT
 
 
-
-
-
-# def Prediction(pred_data, model, user_RT, item_RT, completion, \
-#                ranking_method, DEVICE, topx=100):
-#     """
-    
-#     ========------->>>>>>> New definition for training BERT. 
-#     ========------->>>>>>> Now using available data_LIST type.
-#     ========------->>>>>>> Get all embed values first and then dot product.
-    
-    
-#     Prediction on targets = to be mentionned movies...
-    
-#     """
-    
-#     model.eval()
-    
-#     # For print purposes 
-#     nb_batch = len(pred_data) * completion / 100
-#     qt_of_print = 5
-#     print_count = 0
-    
-#     # Esthablish if we are in the training BERT case
-#     training_BERT = hasattr(model, 'BERT')    
-    
-#     Avrg_Ranks = {}
-#     MRR = {}
-#     RR = {}
-#     NDCG = {}
-#     RE_1 = {}
-#     RE_10 = {}
-#     RE_50 = {}
-
-#     pred_on_user = None                
-#     l_items_id = []
-    
-    
-#     # If in the train_BERT context, first get the embed values (returned in right DEVICE)
-#     if training_BERT:
-#         start_time = time.time()
-#         print("Getting user's embeddings")
-#         user_RT = GetBertEmbeds(model, user_RT, DEVICE)
-#         print("Getting movie's embeddings")
-#         item_RT = GetBertEmbeds(model, item_RT, DEVICE)
-#         print(f'It took {time.time() - start_time} to get embeddings')
-#     else: 
-#         # Put on right DEVICE
-#         user_RT = user_RT.to(DEVICE)
-#         item_RT = item_RT.to(DEVICE)
-        
-    
-#     with torch.no_grad():
-#         for batch_idx, (dataid, ConvID, qt_movies_mentionned, user_id, item_id, rating) in enumerate(pred_data):
-            
-#             # Early stopping 
-#             if batch_idx > nb_batch or nb_batch == 0: 
-#                 print('EARLY stopping')
-#                 break
-            
-#             # Print Update
-#             if batch_idx > nb_batch / qt_of_print * print_count:
-#                 print('Batch {} out of {}'.format(batch_idx, nb_batch))
-#                 print_count += 1
-                               
-                        
-#             ### Need to accumualte all movies for the same user (= same qt_movies_mentions)
-#             # If first time, set pred_on_user to the first one
-#             if pred_on_user == None: 
-#                 pred_on_user = user_id
-#                 pred_on_qt_m_m = qt_movies_mentionned
-#             # If we changed user 
-#             if pred_on_user != user_id:
-                
-#                 """ Make the prediction on the pred_on user """
-#                 # Get user's embedding
-#                 user_embed = user_RT[pred_on_user]
-#                 # Adapt shape for model: embedding_size -> qt_items x embedding_size 
-#                 user_embed_broad = user_embed.expand(len(item_RT), -1)
-#                 # Make predictions on all movies embedding 
-#                 # If training BERT, get merge part of the model
-#                 if training_BERT:
-#                     pred = model.merge(user_embed_broad, item_RT)[0]   # model returns (pred, logits)
-#                 # If not, model is MLP, used it.
-#                 else:   
-#                     pred = model(user_embed_broad, item_RT)[0]
-                
-                
-                
-#                 # Insure their is at least one target movie (case where new user starts with rating 0)
-#                 # (if not, go to next item and this sample not considered (continue))
-#                 if l_items_id == []: 
-#                     if rating == 1:
-#                         l_items_id = [item_id]    
-#                     else:
-#                         l_items_id = [] 
-#                     continue
-
-#                 # ... get Ranks for targets 
-#                 ranks, avrg_rk, mrr, rr, re_1, re_10, re_50, ndcg = \
-#                                             Ranks(pred, l_items_id, ranking_method, topx)
-                
-#                 # Add Ranks results to appropriate dict
-#                 if pred_on_qt_m_m in RR.keys():
-#                     Avrg_Ranks[pred_on_qt_m_m].append(avrg_rk)
-#                     MRR[pred_on_qt_m_m].append(mrr)
-#                     RR[pred_on_qt_m_m].append(rr)
-#                     NDCG[pred_on_qt_m_m].append(ndcg)
-#                     RE_1[pred_on_qt_m_m].append(re_1)
-#                     RE_10[pred_on_qt_m_m].append(re_10)
-#                     RE_50[pred_on_qt_m_m].append(re_50)
-#                 else:
-#                     Avrg_Ranks[pred_on_qt_m_m] = [avrg_rk]
-#                     MRR[pred_on_qt_m_m] = [mrr]
-#                     RR[pred_on_qt_m_m] = [rr]
-#                     NDCG[pred_on_qt_m_m] = [ndcg]
-#                     RE_1[pred_on_qt_m_m] = [re_1]
-#                     RE_10[pred_on_qt_m_m] = [re_10]
-#                     RE_50[pred_on_qt_m_m] = [re_50]
-#                 """ Done"""   
-               
-#                 # Update pred_on with the one in the for loop, were done with pred_on
-#                 pred_on_user = user_id
-#                 pred_on_qt_m_m = qt_movies_mentionned
-#                 if rating == 1:
-#                     l_items_id = [item_id]    
-#                 else:
-#                     l_items_id = [] 
-                
-            
-#             # If same user, add information
-#             else:
-#                 # Prediction only on positive mentions
-#                 if rating == 1:
-#                     l_items_id.append(item_id)
-            
-            
-
-#     return Avrg_Ranks, MRR, RR, RE_1, RE_10, RE_50, NDCG
 
 
 
