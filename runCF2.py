@@ -36,6 +36,28 @@ import CF2.Arguments as Arguments
 def main(args):
     
     
+    
+    
+    
+    ########################
+    #                      # 
+    #      ARGUMENTS       #
+    #                      # 
+    ########################  
+    
+    
+    # (need for Orion, from $SLURM_TMPDIR, adapted elsewhere)
+    args.logModelsPATH = args.working_dir + '/Results/Models/' + args.trial_id + '/'
+    args.logInfosPATH = args.working_dir + '/Results/Infos/' + args.trial_id + '/'
+    
+    # Making the --dataPATH 
+    args.dataPATH = args.working_dir + args.dataPATH 
+    
+    print(vars(args))    
+    
+    
+    
+    
     ########################
     #                      # 
     #         INIT         #
@@ -172,9 +194,8 @@ def main(args):
     
 #%%    
 
-    
-    
 
+    
     
     
     
