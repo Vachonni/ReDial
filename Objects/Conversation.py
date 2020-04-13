@@ -240,8 +240,8 @@ class Conversation():
     
     def ReDOrIddAndRatings(self, movies):
         """
-        Takes a list of movies and returns a list of movies (ReD_or_id) and associated rating 
-        in this conversation.  
+        Takes a list of movies and returns a list of movies (ReD_or_id) and  
+        associated rating in this conversation.  
         
         If no rating exists, return [].
     
@@ -320,12 +320,13 @@ class Conversation():
     def ConversationToDataByRecommendations(self):
         """
         Takes a ReDial Conversation obj and 
-        returns **FOUR** sets of data ready for ML (FOR THIS ONE CONVERSATION)
-            ED_next: For ED, target is only one movie, the ones mentioned in next message
-            ED_all: For ED, targets are all the movies to be mentioned in the rest of conversation
-            BERT_next: For BERT, target is only one movie, the ones mentioned in next message
-            BERT_all: For BERT, targets are all the movies to be mentioned in the rest of conversation
-    
+        returns **FIVE** sets of data ready for ML (FOR THIS ONE CONVERSATION),
+        plus ONE KB of users created
+        
+        *** Now, users correspond to chunks of messages in a conversation before a 
+            recommender's recommendation
+            
+
         Parameters
         ----------
         
@@ -355,7 +356,7 @@ class Conversation():
         
         BERT_next : TYPE **ONE** defaultdict(list) where each keys has values for all dataset
             FORMAT:{
-                    ConID: int,
+                    ConvID: int,
                     text: str, 
                     ratings: "[(ReD_or_id, ratings)]" -> starts with (-2,qt_mentioned) fills (-1,0)
                     }
@@ -363,16 +364,43 @@ class Conversation():
         
         BERT_all : TYPE: **ONE** defaultdict(list) where each keys has values for all dataset
             FORMAT:{
-                    ConID: [int],
+                    ConvID: [int],
                     text: [str], 
                     ratings: "[[(ReD_or_id, ratings)]]" -> starts with (-2,qt_mentioned) fills (-1,0)
                     }
             DESCRIPTION: For BERT, targets are all the movies to be mentioned in the rest of conversation  
+        
+        CF2 : TYPE List of list
+            FORMAT:[
+                all_movies_rated* -> list of ReD_or_id,
+                ConvID -> str,
+                qt_movies_mentioned -> int,
+                user_id -> int,
+                item_id -> int (ReD_or_id),
+                rating -> int
+                ]
+                * all_movies_rated are all the movies a user rated in a Conversation (= Y+). Used in data augmentation.
+             DESCRIPTION: For CF2, target is only one movie, the ones mentioned in next message 
+        
+        KB_users : TYPE dict of dict
+            FORMAT: {user_id:
+                         {ConvID: -> str,
+                          movies_ratings_mentioned: -> [(ReD_or_id, rating)],
+                          movies_ratings_to_be_mention: -> [(ReD_or_id, rating)],
+                          qt_mentioned: -> int,
+                          text_raw: -> str,
+                          text_nl: -> str,
+                          text_nlg: -> str,
+                         } 
+                     }
+             DESCRIPTION: Information about user_id created here 
         """
         
         # Initialize for ED and BERT, each for next and all
         ED_next = []
         ED_all = [] 
+        CF2 = []
+        KB_users = {}
         BERT_next = defaultdict(list)
         BERT_all = defaultdict(list)
         
@@ -380,21 +408,30 @@ class Conversation():
         # (will be used in other methods)
         if not hasattr(self, 'movies_and_ratings'):
             self.movies_and_ratings = self.GetMoviesAndRatings() 
+        # If not movies rates in this conversation, return empty variables
+        if self.movies_and_ratings == None: 
+            return ED_next, ED_all, CF2, KB_users, BERT_next, BERT_all
+    
+    
+        # Keep track of movies to be mention (not mentioned yet and that have ratings)
+        movies_to_be_mention = copy.deepcopy(self.movies_and_ratings)
+        # For CF2, fr data augmentation
+        all_movies_rated = [ReD_id_2_ReD_or_id[movie] for \
+                            movie, rating in self.movies_and_ratings.items()]
         
-        # Keep track of movies to be mentioned, not mentioned yet and that have ratings
-        movies_to_be_mentioned = copy.deepcopy(self.movies_and_ratings)
-        
-        
+            
         # Consider all messages in this conversation
         for m_n_m in self.MessagesAndMentionsByChunks():    
                 
             # If no more movies to be mentioned or their were no movies form completed,
             # stop process for this conversation
-            if movies_to_be_mentioned == {} or movies_to_be_mentioned == None: break
+            if movies_to_be_mention == {} or movies_to_be_mention == None: break
             
         
             # If message is from recommender and it mentions new_movies (i.e Reco recommends!)
             if m_n_m['message'].role == 'R::' and m_n_m['new_movies'] != []:
+                
+                
                 
                 # ED_DATA
                                    
@@ -408,14 +445,48 @@ class Conversation():
                                         target])
             
                 # Add data for all movies to come (with ratings) in data_all 
-                target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))
+                target = self.ReDOrIddAndRatings(list(movies_to_be_mention.keys()))
                 ED_all.append([str(Conversation.user_id),
                                self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
                                m_n_m['genres_mentioned'],
                                target])      
-                          
+                     
+                
+                
+                # CF2_DATA   (only doing next)
+                
+                # Add data for every movies in this message in data_next if has rating
+                for m in m_n_m['new_movies']:
+                    target = self.ReDOrIddAndRatings([m])
+                    if target != []:
+                        CF2.append([all_movies_rated,
+                                    str(self.conv_id),
+                                    len(m_n_m['movies_mentioned']),
+                                    Conversation.user_id,
+                                    target[0][0],
+                                    target[0][1]])
+                
+                
+                # KB_users
+                
+                KB_users[Conversation.user_id] = \
+                    {
+                        'ConvID': str(self.conv_id),
+                        'movies_ratings_mentioned': \
+                            self.ReDOrIddAndRatings(m_n_m['movies_mentioned']),
+                        'movies_ratings_to_be_mention': \
+                            self.ReDOrIddAndRatings(list(movies_to_be_mention.keys())),
+                        'qt_mentioned': len(m_n_m['movies_mentioned']),
+                        'text_raw': m_n_m['text_mentioned'],
+                        'text_nl': m_n_m['text_mentioned_nl'],
+                        'text_nlg': m_n_m['text_mentioned_nl_genres']
+                    }
+                
+                
                 # Update user_id
                 Conversation.user_id += 1
+                
+                
                 
                 
                 # BERT_DATA
@@ -433,7 +504,7 @@ class Conversation():
                         BERT_next['ratings'].append(B_target)
 
                 # Add data for all movies to come in data_all if has target
-                target = self.ReDOrIddAndRatings(list(movies_to_be_mentioned.keys()))      
+                target = self.ReDOrIddAndRatings(list(movies_to_be_mention.keys()))      
                 BERT_all['ConvID'].append(self.conv_id)
                 BERT_all['text_raw'].append(m_n_m['text_mentioned'])
                 BERT_all['text_nl'].append(m_n_m['text_mentioned_nl'])
@@ -443,13 +514,13 @@ class Conversation():
                 BERT_all['ratings'].append(B_target) 
 
             
-            # Remove all movies in this message from movies_to_be_mentioned 
+            # Remove all movies in this message from movies_to_be_mention 
             for m in m_n_m['new_movies']:
-                movies_to_be_mentioned.pop(m, None)
+                movies_to_be_mention.pop(m, None)
                 
            
             
-        return ED_next, ED_all, BERT_next, BERT_all
+        return ED_next, ED_all, CF2, KB_users, BERT_next, BERT_all
 
 
 
