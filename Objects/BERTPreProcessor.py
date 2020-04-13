@@ -158,7 +158,7 @@ class BERTPreProcessor():
         # Pass input through 'bert' model (excludes the Dropout and \
         # classification layer. Take pooler output (idx 1, just like regular 
         # Bert Model)
-        pooler_output = dict_of_models_modules['bert'](**input_to_bert)[1]
+        pooler_output = dict_of_models_modules['bert'](**input_to_bert)[1].data
 
         # For cuda memmory issues
         if torch.cuda.is_available():
