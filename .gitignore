@@ -16,6 +16,7 @@ __pycache__
 
 Experiments.json 
 /runs 
+/OLDruns
 /Results
 
 
@@ -23,9 +24,8 @@ Experiments.json
 # Data PrePorcessed #
 #####################  
 
-/Data/E19/
 # /Data/PreProcessing/
-/Data/PreProcessed/KB_IMDB_movies.json
+# /Data/PreProcessed/KB_IMDB_movies.json
 /Data/PreProcessed/genres_inter_2_ReD_or_id.json
 /Data/PreProcessed/genres_unique_2_ReD_or_id.json
 /Data/PreProcessed/ReD_or_id_2_ReD_id.json
@@ -33,7 +33,6 @@ Experiments.json
 /Data/Split/
 #Data/BERT_no_empty_input/
 #Data/ED_no_empty_input/
-OLDruns
 /Data/BERT/Items/FullKB/Train.csv
 /Data/BERT/Items/Title/Train.csv
 /Data/BERT/Items/TGA/Train.csv
