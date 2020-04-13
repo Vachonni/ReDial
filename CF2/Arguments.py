@@ -154,7 +154,7 @@ if args.model == 'TrainBERTDotProduct' or args.model == 'TrainBERTMLP':
         args.item_RT = 'BERT_input_MovieTitlesGenres_dict.npy'
 # If not, it should be torch tensors containing BERT embeddings
 else:
-    if args.user_RT[-3:] != '.pt' or args.item_RT[-3:] != '.pt':
+    if args.user_RT[-4:] != '.pth' or args.item_RT[-4:] != '.pth':
        print("\n\n\n     ****************************")
        print("          ***   WARNING  ***")
        print("\n     Changing RT to make them torch.Tensor with embeddings ")
