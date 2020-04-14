@@ -187,14 +187,21 @@ class Dataset_Train(data.Dataset):
         
         
         else:   
-            # If we are in the case of MLP (RT are tensors)
-            if not isinstance(self.user_RT, dict):
-                # Need to use integers as index
-                item_id = int(item_id)
+            # If we are in the case of BERT (RT are dict)
+            if isinstance(self.user_RT, dict):
+                # Need to use str as index
+                RT_users = self.user_RT[str(user_id)]
+                RT_items = self.item_RT[str(item_id)]
+            # Case where RT are tensor, use int
+            else:
+                RT_users = self.user_RT[user_id]
+                RT_items = self.item_RT[item_id]
+            
+            # Manage rating type
             if isinstance(rating, float): rating = np.float64(rating)    # To correct data augmentation
             else: rating = float(rating)   # To correct from int input original data
             
-            return  self.user_RT[user_id], item_id, self.item_RT[item_id], rating, -1
+            return  RT_users, item_id, RT_items, rating, -1
         
 
 
