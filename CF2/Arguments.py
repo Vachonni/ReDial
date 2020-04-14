@@ -49,7 +49,7 @@ parser.add_argument('--qt_random_ratings', type=int, metavar='', default=20, \
 
 parser.add_argument('--model', type=str, metavar='', default='TrainBERTMLP', 
                     choices=['TrainBERTDotProduct', 'TrainBERTMLP', \
-                             'MLP', 'MLPLarge'], \
+                             'MLP', 'MLPLarge', 'MLPLargeSELU'], \
                     help='Which model to use')    
 parser.add_argument('--model_output', type=str, metavar='', default='sigmoid', 
                     choices=['Softmax', 'sigmoid'], \
