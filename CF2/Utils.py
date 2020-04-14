@@ -242,7 +242,7 @@ def TrainReconstruction(train_loader, item_RT, model, model_output, criterion, o
     print_count = 0  
     
     # Esthablish if we are in the training BERT case
-    training_BERT = hasattr(model, 'BERT')
+    training_BERT = (hasattr(model, 'BERT') or hasattr(model, 'BERT_user'))
     
     # Parrallelize if multiple GPUs available
     print(f'We have {torch.cuda.device_count()} GPUs available')
