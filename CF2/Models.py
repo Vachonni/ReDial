@@ -89,7 +89,13 @@ class MLPLarge(nn.Module):
           nn.ReLU(), 
           nn.Linear(128, 64),
           nn.ReLU(),  
-          nn.Linear(64 ,1),
+          nn.Linear(64, 32),
+          nn.ReLU(),  
+          nn.Linear(32, 16),
+          nn.ReLU(),  
+          nn.Linear(16, 8),
+          nn.ReLU(),
+          nn.Linear(8 ,1),
         )
         
         nn.init.xavier_uniform_(self.model[0].weight)
@@ -97,6 +103,10 @@ class MLPLarge(nn.Module):
         nn.init.xavier_uniform_(self.model[4].weight)
         nn.init.xavier_uniform_(self.model[6].weight)
         nn.init.xavier_uniform_(self.model[8].weight)
+        nn.init.xavier_uniform_(self.model[10].weight)
+        nn.init.xavier_uniform_(self.model[12].weight)
+        nn.init.xavier_uniform_(self.model[14].weight)       
+        
         
         
     def forward(self, user, item):
