@@ -187,7 +187,10 @@ class Dataset_Train(data.Dataset):
         
         
         else:   
-            item_id = int(item_id)
+            # If we are in the case of MLP (RT are tensors)
+            if not isinstance(self.user_RT, dict):
+                # Need to use integers as index
+                item_id = int(item_id)
             if isinstance(rating, float): rating = np.float64(rating)    # To correct data augmentation
             else: rating = float(rating)   # To correct from int input original data
             
