@@ -360,10 +360,12 @@ class Train2BERT(nn.Module):
     def __init__(self, model, input_size=2*768, hidden_size=512, output_size=1):
         super(Train2BERT, self).__init__()
         
-        if model == 'TrainBERTDotProduct':
+        
+        if model == 'TrainBERTDotProduct' or  model == 'Train2BERTDotProduct':
             self.merge = DotProduct
-        elif model == 'TrainBERTMLP':
+        elif model == 'TrainBERTMLP' or model == 'Train2BERTMLP':
             self.merge = MLP(input_size, hidden_size, output_size)
+        
         
         self.BERT_user = BertModel.from_pretrained('bert-base-uncased')
         self.BERT_item = BertModel.from_pretrained('bert-base-uncased')
