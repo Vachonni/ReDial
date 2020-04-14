@@ -344,7 +344,57 @@ class TrainBERT(nn.Module):
 
 
 
+class Train2BERT(nn.Module):
+    """ 
+    A Model that takes in 2 BERT_input: user and item.
+    
+    Passed each through the EACH IT'S OWN BERT_Model. 
+    
+    Averages the last_hidden_layer.
+    
+    Passed it through MLP model or DotProduct (depending on model)
+    to get a prediction (and logits)
+    """
+    
+    
+    def __init__(self, model, input_size=2*768, hidden_size=512, output_size=1):
+        super(Train2BERT, self).__init__()
+        
+        if model == 'TrainBERTDotProduct':
+            self.merge = DotProduct
+        elif model == 'TrainBERTMLP':
+            self.merge = MLP(input_size, hidden_size, output_size)
+        
+        self.BERT_user = BertModel.from_pretrained('bert-base-uncased')
+        self.BERT_item = BertModel.from_pretrained('bert-base-uncased')
+        
+        
+    def forward(self, user, item):
+        
+        # # Get user's BERT_avrg value
+        # user_last_hidden_layer = self.BERT_user(**user)[0]
+        # user_avrg_last_hidden_layer = user_last_hidden_layer.mean(dim=1)
 
+        # # Get item's BERT_avrg value
+        # item_last_hidden_layer = self.BERT_item(**item)[0]
+        # item_avrg_last_hidden_layer = item_last_hidden_layer.mean(dim=1)    
+        
+        
+        
+        """ Trying with Pooler """
+        
+        # Get user's BERT_avrg value
+        user_avrg_last_hidden_layer = self.BERT_user(**user)[1]
+
+        # Get item's BERT_avrg value
+        item_avrg_last_hidden_layer = self.BERT_item(**item)[1]
+      
+        
+        """  """
+        
+        
+        # Return pred and logits, according to matching factor
+        return self.merge(user_avrg_last_hidden_layer, item_avrg_last_hidden_layer)
 
 
 
