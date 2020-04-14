@@ -17,12 +17,14 @@ from transformers import BertModel
     
 
 
+
 def DotProduct(tensor1, tensor2):
     
     logits = (tensor1 * tensor2).sum(dim=1)
     pred = torch.sigmoid(logits)
     
     return pred, logits
+
 
 
 
@@ -224,6 +226,62 @@ class MLPXLarge(nn.Module):
 
         return pred, logits
 
+
+
+
+
+class NeuMF(nn.Module):
+    
+    def __init__(self):
+        super(NeuMF, self).__init__()
+        
+        self.NCF = nn.Sequential(
+          nn.Linear(2*768 ,512),
+          nn.ReLU(),
+          nn.Linear(512, 256),
+          nn.ReLU(),   
+          nn.Linear(256, 128)
+        )
+        
+        nn.init.xavier_uniform_(self.model[0].weight)
+        nn.init.xavier_uniform_(self.model[2].weight)
+        nn.init.xavier_uniform_(self.model[4].weight)
+
+        
+        self.model = nn.Sequential(
+          nn.Linear(768+128, 512),
+          nn.ReLU(),
+          nn.Linear(512, 128),
+          nn.ReLU(),   
+          nn.Linear(128, 1)
+        )
+        
+        nn.init.xavier_uniform_(self.model[0].weight)
+        nn.init.xavier_uniform_(self.model[2].weight)
+        nn.init.xavier_uniform_(self.model[4].weight)
+
+        
+        
+        
+    def forward(self, user, item):
+        
+        # Concatenate user and item
+        user_item = torch.cat((user, item), dim = -1)
+        
+        # Linear combination
+        linear = DotProduct(user, item)
+        
+        # Non-linear combination
+        non_linear = self.NCF(user_item)
+        
+        # Combine linear and non-linear
+        linear_non_linear = torch.cat((linear, non_linear), dim = -1)
+        
+        # Make a prediction
+        logits = self.model(linear_non_linear).squeeze()
+        pred = torch.sigmoid(logits)
+
+        return pred, logits
 
 
 
