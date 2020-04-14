@@ -462,7 +462,7 @@ def EvalReconstruction(valid_loader, item_RT, model, model_output, criterion, \
 
 
 
-def GetBertEmbeds(model, RT, DEVICE):
+def GetBertEmbeds(model, RT, user_or_item, DEVICE):
     """
     When we are training BERT, use the actual model's BERT part
     to get the embeddings of all users and items.
@@ -473,7 +473,15 @@ def GetBertEmbeds(model, RT, DEVICE):
     # Get BERT of of complete model and parrallelize if multiple GPUs available
     print(f'We have {torch.cuda.device_count()} GPUs available')
     if torch.cuda.device_count() > 1:
-        model = torch.nn.DataParallel(model.BERT).to(DEVICE)
+        # If using a single BERT for users and items
+        if hasattr(model, 'BERT'): 
+                model = torch.nn.DataParallel(model.BERT).to(DEVICE)
+        elif hasattr(model, 'BERT_user') or hasattr(model, 'BERT_item'):
+            if user_or_item == 'user':
+                model = torch.nn.DataParallel(model.BERT_user).to(DEVICE)
+            elif user_or_item == 'item':
+                model = torch.nn.DataParallel(model.BERT_item).to(DEVICE)
+        
     
     # Create Dataset for RT
     RT_dataset = Dataset_Pred(RT)
@@ -537,9 +545,9 @@ def Prediction(pred_data, model, user_RT, item_RT, completion, \
     if training_BERT:
         start_time = time.time()
         print("Getting user's embeddings")
-        user_RT = GetBertEmbeds(model, user_RT, DEVICE)
+        user_RT = GetBertEmbeds(model, user_RT, 'user', DEVICE)
         print("Getting movie's embeddings")
-        item_RT = GetBertEmbeds(model, item_RT, DEVICE)
+        item_RT = GetBertEmbeds(model, item_RT, 'item', DEVICE)
         print(f'It took {time.time() - start_time} to get embeddings')
     else: 
         # Put on right DEVICE
