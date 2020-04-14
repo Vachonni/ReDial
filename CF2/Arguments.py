@@ -11,7 +11,6 @@ List of argumnents usable with parser
 """
 
 import argparse
-import torch
 
 
 parser = argparse.ArgumentParser(description='Train an MLP for CF2')
@@ -49,6 +48,7 @@ parser.add_argument('--qt_random_ratings', type=int, metavar='', default=20, \
 
 parser.add_argument('--model', type=str, metavar='', default='TrainBERTMLP', 
                     choices=['TrainBERTDotProduct', 'TrainBERTMLP', 'NeuMF', \
+                             'Train2BERTDotProduct', 'Train2BERTMLP', \
                              'MLP', 'MLPLarge', 'MLPLargeSELU', 'MLPXLarge'], \
                     help='Which model to use')    
 parser.add_argument('--model_output', type=str, metavar='', default='sigmoid', 

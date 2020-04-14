@@ -106,7 +106,11 @@ def main(args):
     if args.model == 'TrainBERTDotProduct' or args.model == 'TrainBERTMLP':
         model = Models.TrainBERT(args.model)
         criterion = torch.nn.BCEWithLogitsLoss()    
-   
+
+    elif args.model == 'Train2BERTDotProduct' or args.model == 'Train2BERTMLP':
+        model = Models.Train2BERT(args.model)
+        criterion = torch.nn.BCEWithLogitsLoss()    
+        
     else:
         model = Models.MLP()
         if args.model_output == 'Softmax':
