@@ -66,6 +66,7 @@ class MLP(nn.Module):
 
 
 
+
 class MLPLarge(nn.Module):
     """
     Input:
@@ -79,6 +80,109 @@ class MLPLarge(nn.Module):
 
     def __init__(self):
         super(MLPLarge, self).__init__()
+        
+        self.model = nn.Sequential(
+          nn.Linear(2*768 ,512),
+          nn.ReLU(),
+          nn.Linear(512, 256),
+          nn.ReLU(),   
+          nn.Linear(256, 128),
+          nn.ReLU(), 
+          nn.Linear(128, 64),
+          nn.ReLU(),  
+          nn.Linear(64 ,1),
+        )
+        
+        nn.init.xavier_uniform_(self.model[0].weight)
+        nn.init.xavier_uniform_(self.model[2].weight)
+        nn.init.xavier_uniform_(self.model[4].weight)
+        nn.init.xavier_uniform_(self.model[6].weight)
+        nn.init.xavier_uniform_(self.model[8].weight)
+    
+        
+        
+    def forward(self, user, item):
+        
+        # Concatenate user and item
+        user_item = torch.cat((user, item), dim = -1)
+        
+        # Make a prediction
+        logits = self.model(user_item).squeeze()
+        pred = torch.sigmoid(logits)
+
+        return pred, logits
+    
+    
+    
+    
+    
+    
+    
+
+class MLPLargeSELU(nn.Module):
+    """
+    Input:
+        user: A tensor of shape (batch, x)        (e.g: BERT average representation (batch, 768))
+        item: A tensor of shape (batch, x)        (e.g: BERT average representation (batch, 768))
+    Output:
+        A tensor of shape (batch, 1) representing the predicted ratings of each user-item pair (+ the logits)
+        
+    """
+
+
+    def __init__(self):
+        super(MLPLargeSELU, self).__init__()
+        
+        self.model = nn.Sequential(
+          nn.Linear(2*768 ,512),
+          nn.SELU(),
+          nn.Linear(512, 256),
+          nn.SELU(),   
+          nn.Linear(256, 128),
+          nn.SELU(), 
+          nn.Linear(128, 64),
+          nn.SELU(),  
+          nn.Linear(64 ,1),
+        )
+        
+        nn.init.xavier_uniform_(self.model[0].weight)
+        nn.init.xavier_uniform_(self.model[2].weight)
+        nn.init.xavier_uniform_(self.model[4].weight)
+        nn.init.xavier_uniform_(self.model[6].weight)
+        nn.init.xavier_uniform_(self.model[8].weight)
+    
+        
+        
+    def forward(self, user, item):
+        
+        # Concatenate user and item
+        user_item = torch.cat((user, item), dim = -1)
+        
+        # Make a prediction
+        logits = self.model(user_item).squeeze()
+        pred = torch.sigmoid(logits)
+
+        return pred, logits
+    
+    
+    
+    
+    
+    
+
+class MLPXLarge(nn.Module):
+    """
+    Input:
+        user: A tensor of shape (batch, x)        (e.g: BERT average representation (batch, 768))
+        item: A tensor of shape (batch, x)        (e.g: BERT average representation (batch, 768))
+    Output:
+        A tensor of shape (batch, 1) representing the predicted ratings of each user-item pair (+ the logits)
+        
+    """
+
+
+    def __init__(self):
+        super(MLPXLarge, self).__init__()
         
         self.model = nn.Sequential(
           nn.Linear(2*768 ,512),
@@ -122,60 +226,6 @@ class MLPLarge(nn.Module):
 
 
 
-
-class MLPLargeSELU(nn.Module):
-    """
-    Input:
-        user: A tensor of shape (batch, x)        (e.g: BERT average representation (batch, 768))
-        item: A tensor of shape (batch, x)        (e.g: BERT average representation (batch, 768))
-    Output:
-        A tensor of shape (batch, 1) representing the predicted ratings of each user-item pair (+ the logits)
-        
-    """
-
-
-    def __init__(self):
-        super(MLPLarge, self).__init__()
-        
-        self.model = nn.Sequential(
-          nn.Linear(2*768 ,512),
-          nn.SELU(),
-          nn.Linear(512, 256),
-          nn.SELU(),   
-          nn.Linear(256, 128),
-          nn.SELU(), 
-          nn.Linear(128, 64),
-          nn.SELU(),  
-          nn.Linear(64, 32),
-          nn.SELU(),  
-          nn.Linear(32, 16),
-          nn.SELU(),  
-          nn.Linear(16, 8),
-          nn.SELU(),
-          nn.Linear(8 ,1),
-        )
-        
-        nn.init.xavier_uniform_(self.model[0].weight)
-        nn.init.xavier_uniform_(self.model[2].weight)
-        nn.init.xavier_uniform_(self.model[4].weight)
-        nn.init.xavier_uniform_(self.model[6].weight)
-        nn.init.xavier_uniform_(self.model[8].weight)
-        nn.init.xavier_uniform_(self.model[10].weight)
-        nn.init.xavier_uniform_(self.model[12].weight)
-        nn.init.xavier_uniform_(self.model[14].weight)       
-        
-        
-        
-    def forward(self, user, item):
-        
-        # Concatenate user and item
-        user_item = torch.cat((user, item), dim = -1)
-        
-        # Make a prediction
-        logits = self.model(user_item).squeeze()
-        pred = torch.sigmoid(logits)
-
-        return pred, logits
 
 
 
