@@ -225,7 +225,7 @@ class Dataset_Pred(data.Dataset):
     def __getitem__(self, index):
         "Generate one sample of data."    
           
-        return index, self.RT[index]
+        return index, self.RT[str(index)]
     
 
 
