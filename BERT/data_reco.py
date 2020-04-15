@@ -118,7 +118,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
 
     features = []
     for (ex_index, example) in enumerate(examples):
-        if ex_index % 10000 == 0:
+        if ex_index % 10000 == 0 and len(examples) > 1:
             if logger:
                 logger.info("Writing example %d of %d" %
                             (ex_index, len(examples)))
