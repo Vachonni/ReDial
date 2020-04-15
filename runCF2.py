@@ -222,44 +222,47 @@ def main(args):
     if args.DEBUG: args.epoch = 1
     
     
+    
+    
+    start_time = time.time()
+
+    # Augment train_data with random ratings at 0
+    
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        train_data_generator = executor.map(Utils.GetRandomItemsAt0, \
+                                            train_data, chunksize=100)
+    train_data_augmented = np.vstack(list(train_data_generator))
+    train_dataset = Utils.Dataset_Train(train_data_augmented, \
+                                        user_RT, item_RT, args.model_output)
+    kwargs = {'num_workers': args.num_workers, 'pin_memory': False}    
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
+                                               shuffle=True, drop_last=True, **kwargs)
+       
+    augment_time = time.time()    
+        
+    print(f'Augmenting train data with {args.qt_random_ratings} random ratings \
+          took {augment_time - start_time} seconds with {multiprocessing.cpu_count()} CPUs.')
+        
+        
+        
+            
+            
+            
+    
+    
+    
+    
+    
     for epoch in range(args.epoch):
     
         print('\n\n\n\n     ==> Epoch:', epoch, '\n')
+
         
+
+
+        augment_time = time.time()  
         
-        
-        
-        start_time = time.time()
-        
-        
-        
-        
-        # Augment train_data with random ratings at 0
-        
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            train_data_generator = executor.map(Utils.GetRandomItemsAt0, \
-                                                train_data, chunksize=100)
-        train_data_augmented = np.vstack(list(train_data_generator))
-        train_dataset = Utils.Dataset_Train(train_data_augmented, \
-                                            user_RT, item_RT, args.model_output)
-        kwargs = {'num_workers': args.num_workers, 'pin_memory': False}    
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
-                                                   shuffle=True, drop_last=True, **kwargs)
-        
-            
-            
-            
-        augment_time = time.time()    
-            
-        print(f'Augmenting train data with {args.qt_random_ratings} random ratings \
-              took {augment_time - start_time} seconds with {multiprocessing.cpu_count()} CPUs.')
-            
-            
-            
-            
-            
-            
-        
+
         train_loss = Utils.TrainReconstruction(train_loader, item_RT, model, \
                                                args.model_output, criterion, optimizer, \
                                                args.weights, args.completionTrain, args.DEVICE)
@@ -267,13 +270,11 @@ def main(args):
                                              args.model_output, criterion, \
                                              args.weights, args.completionEval, args.DEVICE)
         
-        
 
         train_time = time.time()
         
         print(f'With {args.num_workers} workers,\
               it took {train_time - augment_time} seconds to train and eval')   
-        
         
         
         
