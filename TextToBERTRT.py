@@ -100,8 +100,15 @@ def TextToBERTRT(model, databunch, text):
     # Get the dataloader for this text
     dataloader = databunch.get_dl_from_texts([text])
 
-    # Get the input from this dataloader
-    input_to_bert = next(iter(dataloader))
+    # Get the batch from this dataloader
+    batch = next(iter(dataloader))
+    
+    # Turn the batch into proper BERT input        
+    with torch.no_grad():
+        input_to_bert = {'input_ids':      batch[0],
+                         'attention_mask': batch[1],
+                         'token_type_ids': batch[2],
+                         'labels':         None}
 
     # Put this input into BERT for classification model and get pooler output
     pooler_output = model.bert(**input_to_bert)[1].detach()
