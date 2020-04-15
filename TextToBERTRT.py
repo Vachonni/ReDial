@@ -102,6 +102,7 @@ def TextToBERTRT(model, databunch, text):
 
     # Get the batch from this dataloader
     batch = next(iter(dataloader))
+    batch = tuple(t.to(DEVICE) for t in batch)
     
     # Turn the batch into proper BERT input        
     with torch.no_grad():
