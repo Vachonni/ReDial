@@ -18,12 +18,13 @@ import torch
 import json
 from transformers import BertForSequenceClassification 
 
-from Objects.BERTPreProcessor import BERTPreProcessor 
+from BERT.data_reco import BertDataBunch
 from Settings import ReD_id_2_ReD_or_id
 
 
 
-# Variables according to local or Compute Canada
+
+# Set variables according to local or Compute Canada
 if torch.cuda.is_available():
     DEVICE = 'cuda'
     path_to_ReDial = '/home/vachonni/scratch/ReDial'
@@ -33,6 +34,12 @@ else:
 print('DEVICE = ', DEVICE )
 
 
+
+######################
+###                ###
+###     Data       ###
+###                ###
+######################
 
 # Load knowledge bases
 
@@ -46,10 +53,77 @@ with open(path_to_ReDial + '/Data/PreProcessed/KB_IMDB_movies.json', 'r') as fp:
 
 
 
+######################
+###                ###
+###   DataBunch    ###
+###                ###
+######################
+
+###        ****    WARNING    ****
+### THESE PATHS WON'T BE USED FOR DATA INPUT (but needed in databunch creation)
+### Only texts from KB will be used.
+DATA_PATH = path_to_ReDial + '/Data/BERT/Next/TextRaw/'     # path for data files (train and val)
+LABEL_PATH = path_to_ReDial + '/Data/BERT/Next/TextRaw/'    # path for labels file
 
 
+databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
+                          tokenizer='bert-base-uncased',
+                          train_file='Train.csv',   
+                          val_file='Val.csv',
+                          label_file='labels.csv',
+                          text_col='text',
+                          label_col=['ratings'],
+                          batch_size_per_gpu=1,
+                          max_seq_length=512,
+                          multi_gpu=False,
+                          multi_label=True,
+                          model_type='bert',
+                          clear_cache=True,
+                          no_cache=True)
+
+
+
+######################
+###                ###
+###   Function     ###
+###                ###
+######################
+
+
+def TextToBERTRT(model, databunch, text):
+    """
+    From a string 
+    To a BERT input as vector and 
+    pooler output of a BertForSequenceClassification model.       
+    """
+
+    # Get the dataloader for this text
+    dataloader = databunch.get_dl_from_texts([text])
+
+    # Get the input from this dataloader
+    input_to_bert = next(iter(dataloader))
+
+    # Put this input into BERT for classification model and get pooler output
+    pooler_output = model.bert(**input_to_bert)[1].detach()
+
+
+    return input_to_bert, pooler_output
+
+
+
+
+
+
+
+
+######################
+###                ###
+###      Main      ###
+###                ###
+######################
 
 if __name__ == '__main__':
+  
     
     
     # USERS   
@@ -68,13 +142,8 @@ if __name__ == '__main__':
                        path_to_ReDial + '/Results/1586382856_BERT_Next_NL_G_lr5e-4') 
     BERT_users_nlg.to(DEVICE)
     BERT_users_nlg.eval()
+    print('Bert for users models loaded')
 
-    
-    
-    # Get the BERT processor for users    
-    bert_user_raw_prepro = BERTPreProcessor(BERT_users_raw)
-    bert_user_nl_prepro = BERTPreProcessor(BERT_users_nl)
-    bert_user_nlg_prepro = BERTPreProcessor(BERT_users_nlg)
     
     # Inputs. Init dict of dict of torch tensors
     users_raw_inputs = {}
@@ -94,21 +163,13 @@ if __name__ == '__main__':
         # print update
         if int(user_id) % 1000 == 0: print(f'Treating user {user_id}')
         
-        # Into BERT inputs
-        users_raw_inputs[user_id] = \
-            bert_user_raw_prepro.TextToBERTInp1Speaker(user_id_values['text_raw'])
-        users_nl_inputs[user_id] = \
-            bert_user_nl_prepro.TextToBERTInp1Speaker(user_id_values['text_nl'])
-        users_nlg_inputs[user_id] = \
-            bert_user_nlg_prepro.TextToBERTInp1Speaker(user_id_values['text_nlg'])
-
-        # Into BERT pooler embeddings
-        users_raw_embed[int(user_id)] = \
-            bert_user_raw_prepro.TextToBERTPooler(user_id_values['text_raw'])
-        users_nl_embed[int(user_id)] = \
-            bert_user_nl_prepro.TextToBERTPooler(user_id_values['text_nl'])
-        users_nlg_embed[int(user_id)] = \
-            bert_user_nlg_prepro.TextToBERTPooler(user_id_values['text_nlg'])
+        # String to BERT RT
+        users_raw_inputs[user_id], users_raw_embed[int(user_id)] = \
+            TextToBERTRT(BERT_users_raw, databunch, user_id_values['text_raw'])
+        users_nl_inputs[user_id], users_nl_embed[int(user_id)] = \
+            TextToBERTRT(BERT_users_nl, databunch, user_id_values['text_nl'])
+        users_nlg_inputs[user_id], users_nlg_embed[int(user_id)] = \
+            TextToBERTRT(BERT_users_nlg, databunch, user_id_values['text_nlg'])
 
     
     # save
@@ -123,10 +184,7 @@ if __name__ == '__main__':
     del(BERT_users_raw)
     del(BERT_users_nl)
     del(BERT_users_nlg)
-    del(bert_user_raw_prepro)
-    del(bert_user_nl_prepro)
-    del(bert_user_nlg_prepro)
-    
+
 
     
     
@@ -149,11 +207,7 @@ if __name__ == '__main__':
     print('Bert for items models loaded')
         
     
-    # Get the BERT processor for users    
-    bert_item_kb_prepro = BERTPreProcessor(BERT_items_full_kb)
-    bert_item_tga_prepro = BERTPreProcessor(BERT_items_tga)
-    bert_item_title_prepro = BERTPreProcessor(BERT_items_title)
-    
+
     # Inputs. Init dict of dict of torch tensors
     items_full_kb_inputs = {}
     items_tga_inputs = {}
@@ -180,20 +234,12 @@ if __name__ == '__main__':
               '. Actors: ' + str(item_id_values['actors'])
         
         # Into BERT inputs
-        items_full_kb_inputs[str(ReD_or_id)] = \
-            bert_item_kb_prepro.TextToBERTInp1Speaker(str(item_id_values))
-        items_tga_inputs[str(ReD_or_id)] = \
-            bert_item_tga_prepro.TextToBERTInp1Speaker(tga)
-        items_title_inputs[str(ReD_or_id)] = \
-            bert_item_title_prepro.TextToBERTInp1Speaker(item_id_values['title'])
-
-        # Into BERT pooler embeddings
-        items_full_kb_embed[ReD_or_id] = \
-            bert_item_kb_prepro.TextToBERTPooler(str(item_id_values))
-        items_tga_embed[ReD_or_id] = \
-            bert_item_tga_prepro.TextToBERTPooler(tga)
-        items_title_embed[ReD_or_id] = \
-            bert_item_title_prepro.TextToBERTPooler(item_id_values['title'])
+        items_full_kb_inputs[str(ReD_or_id)], items_full_kb_embed[ReD_or_id] = \
+            TextToBERTRT(BERT_items_full_kb, databunch, str(item_id_values))
+        items_tga_inputs[str(ReD_or_id)], items_tga_embed[ReD_or_id] = \
+            TextToBERTRT(BERT_items_tga, databunch, tga)
+        items_title_inputs[str(ReD_or_id)], items_title_embed[ReD_or_id] = \
+            TextToBERTRT(BERT_items_title, databunch, item_id_values['title'])
 
     
     # save
