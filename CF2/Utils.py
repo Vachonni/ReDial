@@ -274,8 +274,8 @@ def TrainReconstruction(train_loader, item_RT, model, model_output, criterion, o
         
         # Put on right DEVICE
         if training_BERT:
-            user = {k:v.to(DEVICE) for k, v in user.items()}
-            item = {k:v.to(DEVICE) for k, v in item.items()}
+            user = {k:v.squeeze().to(DEVICE) for k, v in user.items()}
+            item = {k:v.squeeze().to(DEVICE) for k, v in item.items()}
         else:
             user = user.to(DEVICE)
             item = item.to(DEVICE)
@@ -387,8 +387,8 @@ def EvalReconstruction(valid_loader, item_RT, model, model_output, criterion, \
             
             # Put on right DEVICE
             if training_BERT:
-                user = {k:v.to(DEVICE) for k, v in user.items()}
-                item = {k:v.to(DEVICE) for k, v in item.items()}
+                user = {k:v.squeeze().to(DEVICE) for k, v in user.items()}
+                item = {k:v.squeeze().to(DEVICE) for k, v in item.items()}
             else:
                 user = user.to(DEVICE)
                 item = item.to(DEVICE)
@@ -496,7 +496,7 @@ def GetBertEmbeds(model, RT, user_or_item, DEVICE):
 
             # Put relations on right DEVICE
             idx_rel = idx_rel.to(DEVICE)
-            dict_rel = {k:v.to(DEVICE) for k, v in dict_rel.items()}
+            dict_rel = {k:v.squeeze().to(DEVICE) for k, v in dict_rel.items()}
                 
             embed_rel = model(**dict_rel)[0].mean(dim=1)
             
