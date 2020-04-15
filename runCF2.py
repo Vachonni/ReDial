@@ -311,7 +311,7 @@ def main(args):
 
         pred_time = time.time()
         
-        print(f'It took {pred_time - train_time} seconds to make predictions')     
+        print(f'It took {pred_time - train_time} seconds to make predictions \n\n')     
 
     
     
