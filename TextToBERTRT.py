@@ -13,7 +13,7 @@ Turning users' and items' text representation into BERT...:
 """
 
 
-
+import os
 import torch
 import json
 from transformers import BertForSequenceClassification 
@@ -132,6 +132,12 @@ def TextToBERTRT(model, databunch, text):
 if __name__ == '__main__':
   
     
+    # Paths  
+    BERTInput_path = path_to_ReDial + '/Data/CF2/RT/BERTInput/'
+    PoolerEmbed_path = path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/'
+    if not os.path.isdir(BERTInput_path): os.makedirs(BERTInput_path, exist_ok=True)
+    if not os.path.isdir(PoolerEmbed_path): os.makedirs(PoolerEmbed_path, exist_ok=True)
+
     
     # USERS   
     
@@ -180,12 +186,12 @@ if __name__ == '__main__':
 
     
     # save
-    torch.save(users_raw_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_raw.pth')
-    torch.save(users_nl_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_nl.pth')
-    torch.save(users_nlg_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/users_nlg.pth')
-    torch.save(users_raw_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_raw.pth')
-    torch.save(users_nl_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_nl.pth')
-    torch.save(users_nlg_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/users_nlg.pth')
+    torch.save(users_raw_inputs, BERTInput_path + 'users_raw.pth')
+    torch.save(users_nl_inputs, BERTInput_path + 'users_nl.pth')
+    torch.save(users_nlg_inputs, BERTInput_path + 'users_nlg.pth')
+    torch.save(users_raw_embed, PoolerEmbed_path + 'users_raw.pth')
+    torch.save(users_nl_embed, PoolerEmbed_path + 'users_nl.pth')
+    torch.save(users_nlg_embed, PoolerEmbed_path + 'users_nlg.pth')
 
     # del to free space
     del(BERT_users_raw)
@@ -250,12 +256,12 @@ if __name__ == '__main__':
 
     
     # save
-    torch.save(items_full_kb_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/items_full_kb.pth')
-    torch.save(items_tga_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/items_tga.pth')
-    torch.save(items_title_inputs, path_to_ReDial + '/Data/CF2/RT/BERTInput/items_title.pth')
-    torch.save(items_full_kb_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/items_full_kb.pth')
-    torch.save(items_tga_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/items_tga.pth')
-    torch.save(items_title_embed, path_to_ReDial + '/Data/CF2/RT/PoolerEmbed/items_title.pth')
+    torch.save(items_full_kb_inputs, BERTInput_path + 'items_full_kb.pth')
+    torch.save(items_tga_inputs, BERTInput_path + 'items_tga.pth')
+    torch.save(items_title_inputs, BERTInput_path + 'items_title.pth')
+    torch.save(items_full_kb_embed, PoolerEmbed_path + 'items_full_kb.pth')
+    torch.save(items_tga_embed, PoolerEmbed_path + 'items_tga.pth')
+    torch.save(items_title_embed, PoolerEmbed_path + 'items_title.pth')
         
     
 
