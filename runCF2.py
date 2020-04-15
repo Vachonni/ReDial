@@ -120,7 +120,7 @@ def main(args):
              
     model = model.to(args.DEVICE)        
         
-    optimizer = optim.SparseAdam(model.parameters(), lr = args.lr)
+    optimizer = optim.AdamW(model.parameters(), lr = args.lr)
     
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', \
                                                      patience=3, verbose=True)
