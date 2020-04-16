@@ -17,10 +17,6 @@ parser = argparse.ArgumentParser(description='Train an MLP for CF2')
 
 
 
-# Path where files will be logged (modifired in run.py and runORION.py)
-
-parser.add_argument('--logPATH', type=str, metavar='',\
-                    help='Path to directory used when saving files.')
 
     
 # Data
