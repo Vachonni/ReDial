@@ -84,7 +84,6 @@ class MLPLarge(nn.Module):
         super(MLPLarge, self).__init__()
         
         self.model = nn.Sequential(
-          nn.Dropout(0.1),  
           nn.Linear(2*768 ,512),
           nn.ReLU(),
           nn.Linear(512, 256),
@@ -96,11 +95,11 @@ class MLPLarge(nn.Module):
           nn.Linear(64 ,1),
         )
         
-        nn.init.xavier_uniform_(self.model[1].weight)
-        nn.init.xavier_uniform_(self.model[3].weight)
-        nn.init.xavier_uniform_(self.model[5].weight)
-        nn.init.xavier_uniform_(self.model[7].weight)
-        nn.init.xavier_uniform_(self.model[9].weight)
+        nn.init.xavier_uniform_(self.model[0].weight)
+        nn.init.xavier_uniform_(self.model[2].weight)
+        nn.init.xavier_uniform_(self.model[4].weight)
+        nn.init.xavier_uniform_(self.model[6].weight)
+        nn.init.xavier_uniform_(self.model[8].weight)
     
         
         
