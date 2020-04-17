@@ -150,7 +150,7 @@ MODEL_PATH.mkdir(exist_ok=True)
 
 
 
-logger.info('/n Creating databunch')
+logger.info('\n Creating databunch')
 
 databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
@@ -187,7 +187,7 @@ metrics = ['ndcg', 'recall@1', 'recall@10', 'recall@50']
 
 
 
-logger.info('/n Creating learner')
+logger.info('\n Creating learner')
 
 # Set pretrained model to use.
 # If nothing specified, use 'bert-base-uncased'
@@ -226,7 +226,7 @@ learner.exp_id = exp_id
 # If no fine-tuned model to start with, train
 if args.pre_model == None:
     
-    logger.info('/n Fitting the learner')
+    logger.info('\n Fitting the learner')
     
     learner.fit(epochs=args.epoch,
     			lr=args.lr,
