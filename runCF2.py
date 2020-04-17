@@ -197,7 +197,7 @@ def main(args):
     valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2*args.batch,\
                                                shuffle=True, drop_last=True, **kwargs)    
        
-    
+    print('out of Dataloader')
 #%%    
 
 
@@ -227,10 +227,11 @@ def main(args):
     start_time = time.time()
 
     # Augment train_data with random ratings at 0
-    
+    print('before concurent futures')
     with concurrent.futures.ProcessPoolExecutor() as executor:
         train_data_generator = executor.map(Utils.GetRandomItemsAt0, \
                                             train_data, chunksize=100)
+    print('out of concurent furures')
     train_data_augmented = np.vstack(list(train_data_generator))
     train_dataset = Utils.Dataset_Train(train_data_augmented, \
                                         user_RT, item_RT, args.model_output)
