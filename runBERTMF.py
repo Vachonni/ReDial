@@ -137,7 +137,7 @@ if args.DEVICE == "cuda":
 ###                ###
 ######################
 
-from BERT.data_reco import BertDataBunch
+from BERTMF.data_reco_MF import BertDataBunch
 
 
 DATA_PATH = Path(args.data_path)     # path for data files (train and val)
@@ -177,7 +177,7 @@ databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
 ######################
 
 
-from BERT.learner_reco import BertLearner
+from BERTMF.learner_reco_MF import BertLearner
 
 
 
