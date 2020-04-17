@@ -346,6 +346,7 @@ class BertLearner(object):
                     global_step += 1
                     epoch_step += 1
 
+                if step > 1000: break
             
             # If evaluate the model after every epoch
             if validate:
@@ -398,7 +399,7 @@ class BertLearner(object):
         self.logger.info("  Batch size = %d", self.data.val_batch_size)
         
         
-        eval_loss = 0, 0
+        eval_loss = 0
         nb_eval_steps, nb_eval_examples = 0, 0
                 
         
