@@ -346,7 +346,7 @@ class BertLearner(object):
                     global_step += 1
                     epoch_step += 1
 
-                if step > 1000: break
+                if step > 100: break
             
             # If evaluate the model after every epoch
             if validate:
@@ -363,7 +363,7 @@ class BertLearner(object):
                 # Save at each epoch, with individual names
                 self.logger.info("Saving...")
                 self.results_to_save = results
-                self.saving_epoch = epoch + 1
+                self.saving_epoch = str(epoch + 1)
                 self.save_model()                 
                 self.logger.info("\n                       ...saved")
                 
