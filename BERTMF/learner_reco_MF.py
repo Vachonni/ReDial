@@ -346,7 +346,6 @@ class BertLearner(object):
                     global_step += 1
                     epoch_step += 1
 
-                if step > 100: break
             
             # If evaluate the model after every epoch
             if validate:
@@ -358,7 +357,7 @@ class BertLearner(object):
                  # Add results to tensorboard
                 ToTensorboard(tb_writer, results, epoch + 1, self.model, [])
                 # Print eval_loss
-                self.logger.info("eval_loss after epoch {}: {}".format((epoch + 1), results['eval_loss'])) 
+                self.logger.info("eval_loss after epoch {}: {}   ".format((epoch + 1), results['eval_loss'])) 
                 
                 # Save at each epoch, with individual names
                 self.logger.info("Saving...")
