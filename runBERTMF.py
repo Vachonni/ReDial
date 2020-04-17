@@ -164,8 +164,8 @@ databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           multi_gpu=True,
                           multi_label=True,
                           model_type='bert',
-                          clear_cache=True,
-                          no_cache=True)
+                          clear_cache=False,
+                          no_cache=False)
 
 
 
