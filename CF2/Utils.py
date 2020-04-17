@@ -65,7 +65,6 @@ def GetRandomItemsAt0(user_row):
     
     # Get range of movies to choose from 
     range_size = Settings.nb_movies_ReDial
-    print('range size in GetRandomItemsAt0: ', range_size)
         
     # Get random items ids, different from all_movies_rated
     random_ids = np.random.choice(np.setdiff1d(range(range_size), \
