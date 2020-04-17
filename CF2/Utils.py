@@ -62,14 +62,10 @@ def GetRandomItemsAt0(user_row):
     # Get real items_ids and associated ratings as numpy arrays (vectors)
     real_items = np.array([ReD_or_id])
     real_values = np.array([rating])
-    # real_items = np.array(ast.literal_eval(user_row[-2]))
-    # real_values = np.array(ast.literal_eval(user_row[-1]))
     
-    # Get range of movies to choose from (ReDial Only or with ML?)
-    if Arguments.args.dataPATH == '/Data/DataReDialML/':
-        range_size = Settings.nb_movies_ReDialML
-    else:
-        range_size = Settings.nb_movies_ReDial
+    # Get range of movies to choose from 
+    range_size = Settings.nb_movies_ReDial
+    print('range size in GetRandomItemsAt0: ', range_size)
         
     # Get random items ids, different from all_movies_rated
     random_ids = np.random.choice(np.setdiff1d(range(range_size), \
