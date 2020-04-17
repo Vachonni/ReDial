@@ -44,7 +44,7 @@ def loss_fct(logits, labels):
                 if itemid == -2: continue
                 # If 'filling' of ratings (for uniform dim) have been reached 
                 if itemid == -1: break
-                ratings[i, itemid] = rating
+                ratings[i] = rating
         
 
         return BCEWithLogitsLoss()(logits, ratings)  
