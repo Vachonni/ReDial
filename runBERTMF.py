@@ -53,6 +53,8 @@ parser.add_argument('--log_path', type=str, metavar='', default='.',\
                     help='Path where all infos will be saved.')
 parser.add_argument('--data_path', type=str, metavar='', default='./Data/BERT/Next/', \
                     help='Path to datasets')
+parser.add_argument('--dataTrain', type=str, metavar='', default='Train.csv', \
+                    help='File to train with on') 
 parser.add_argument('--dataPred', type=str, metavar='', default='Val.csv', \
                     help='File to make predictions on')    
 
@@ -154,7 +156,7 @@ logger.info('\n Creating databunch')
 
 databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
-                          train_file='Train.csv',
+                          train_file=args.dataTrain,
                           val_file=args.dataPred,
                           label_file='labels.csv',
                           text_col='text',

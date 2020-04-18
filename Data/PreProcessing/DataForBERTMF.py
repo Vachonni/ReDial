@@ -44,7 +44,7 @@ import multiprocessing
 
 
 
-def GetRandomItemsAt0(user_row, qt_random_ratings=5):
+def GetRandomItemsAt0(user_row, qt_random_ratings=50):
     """
 
     Parameters
@@ -164,8 +164,8 @@ def main():
         
        
         
-    datasets = {'Train': train_data_augmented,
-                'Val': valid_data}        
+    datasets = {'Train50': train_data_augmented}   #,
+              #  'Val': valid_data}        
     
     # Treat both dataset     
     for data_type, dataset in datasets.items():
