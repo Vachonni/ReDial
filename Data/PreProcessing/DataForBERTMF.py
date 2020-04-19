@@ -13,7 +13,8 @@ Creating data for BERT MF (Matrix Factorization)
     
     
         *** To change quantity of random items at 0, 
-            do it in GetRandomItemsAt0 func             ***
+            do it in GetRandomItemsAt0 func.
+            Should also change name in saving portion  ;)      ***
 
 
 
@@ -44,7 +45,7 @@ import multiprocessing
 
 
 
-def GetRandomItemsAt0(user_row, qt_random_ratings=50):
+def GetRandomItemsAt0(user_row, qt_random_ratings=2):
     """
 
     Parameters
@@ -164,7 +165,7 @@ def main():
         
        
         
-    datasets = {'Train50': train_data_augmented}   #,
+    datasets = {'Train2': train_data_augmented}   #,
               #  'Val': valid_data}        
     
     # Treat both dataset     
