@@ -83,7 +83,7 @@ parser.add_argument('--a_comment',type=str, metavar='', default='',\
     
 parser.add_argument('--log_path', type=str, metavar='', default='.',\
                     help='Path where all infos will be saved.')
-parser.add_argument('--data_path', type=str, metavar='', default='./Data/BERTMF/Test/', \
+parser.add_argument('--data_path', type=str, metavar='', default='./Data/BERTMF/', \
                     help='Path to datasets')
 parser.add_argument('--dataPred', type=str, metavar='', default='Test.csv', \
                     help='File to make predictions on')    
