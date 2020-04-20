@@ -97,10 +97,6 @@ parser.add_argument('--user_stop', type=int, metavar='', default=6925, \
     
 parser.add_argument('--pre_model', type=str, metavar='', default=None, \
                     help='Folder where all files for model are saved')    
-parser.add_argument('--epoch', type=int, metavar='', default=1, \
-                    help='Qt of epoch')
-parser.add_argument('--lr', type=float, metavar='', default=6e-5*4, \
-                    help='Initial learning rate')
   
     
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', \
@@ -282,7 +278,7 @@ for u in range(args.user_start, args.user_end):
 
 
 name_file = 'MetricsByMentions_' + args.user_start + '_' + args.user_end + '.pth'
-torch.save(results, Path(model_to_start, name_file)
+torch.save(results, Path(model_to_start, name_file))
 
 
 
