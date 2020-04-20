@@ -495,10 +495,10 @@ class BertLearner(object):
         
         # Use labels input to get needed info for metrics evaluation
         [(_, mentions), (target_idx, _)] = inputs['labels'][0]
-        print("''''' TRAGETS_IDX", target_idx, type(target_idx))
+        print("''''' TRAGETS_IDX", [target_idx.item()], type(target_idx.item()))
         # Get metrics for target (only one in this case)
         avrg_rk, ndcg, re_1, re_10, re_50 = GetMetrics(logits, \
-                                            [target_idx], 100)    # 100 is topx value  
+                                            [target_idx.item()], 100)    # 100 is topx value  
                     
         # Add metric to appropriate MetricByMentions obj
         results['avrg_rank'].Add(avrg_rk, mentions)
