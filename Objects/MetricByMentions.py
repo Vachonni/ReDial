@@ -206,7 +206,7 @@ def GetMetrics(all_values, idx_to_rank, topx = 0):
     if topx == 0: topx = len(all_values)
     
     # -1 because because ranking according to increasing values, we want decreasing
-    ranks = ss.rankdata((-1*all_values).cpu(), method='average')[idx_to_rank]
+    ranks = ss.rankdata((-1*all_values).cpu(), method='min')[idx_to_rank]
         
     ndcg = nDCG(ranks, topx, qt_values_to_rank)
     

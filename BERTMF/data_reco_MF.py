@@ -424,6 +424,9 @@ class BertDataBunch(object):
             self.test_dl = DataLoader(
                 test_dataset, sampler=test_sampler, batch_size=self.test_batch_size)
 
+
+
+
     def get_dl_from_texts(self, texts):
 
         test_examples = []
@@ -441,6 +444,9 @@ class BertDataBunch(object):
 
         test_sampler = SequentialSampler(test_dataset)
         return DataLoader(test_dataset, sampler=test_sampler, batch_size=self.batch_size_per_gpu)
+
+
+
 
     def get_dataset_from_examples(self, examples, set_type='train', is_test=False, no_cache=False):
 
