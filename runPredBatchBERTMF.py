@@ -181,12 +181,12 @@ for m in metrics:
 
 
 # Treat users one by one
-for u in range(args.user_start, args.user_end):
+for u in range(args.user_start, args.user_stop):
     
     user_folder = 'User' + str(u)
     DATA_PATH = Path(args.data_path, 'Test', user_folder)     # path for data files 
     
-    logger.info('\n Creating databunch of ',user_folder )
+    logger.info('\n Creating databunch of ',user_folder)
     
     databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                               tokenizer='bert-base-uncased',
@@ -277,7 +277,7 @@ for u in range(args.user_start, args.user_end):
 ######################
 
 
-name_file = 'MetricsByMentions_' + args.user_start + '_' + args.user_end + '.pth'
+name_file = 'MetricsByMentions_' + args.user_start + '_' + args.user_stop + '.pth'
 torch.save(results, Path(model_to_start, name_file))
 
 
