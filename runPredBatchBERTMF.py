@@ -186,7 +186,7 @@ for u in range(args.user_start, args.user_stop):
     user_folder = 'User' + str(u)
     DATA_PATH = Path(args.data_path, 'Test', user_folder)     # path for data files 
     
-    logger.info('\n Creating databunch of ',user_folder)
+    logger.info('\n Creating databunch of {}', user_folder)
     
     databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                               tokenizer='bert-base-uncased',
