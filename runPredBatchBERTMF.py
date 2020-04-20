@@ -277,7 +277,8 @@ for u in range(args.user_start, args.user_stop):
 ######################
 
 
-name_file = 'MetricsByMentions_' + args.user_start + '_' + args.user_stop + '.pth'
+name_file = 'MetricsByMentions_' + str(args.user_start) + '_' + \
+            str(args.user_stop) + '.pth'
 torch.save(results, Path(model_to_start, name_file))
 
 
