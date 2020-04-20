@@ -502,10 +502,10 @@ class BertLearner(object):
                     
         # Add metric to appropriate MetricByMentions obj
    #     results['avrg_rank'].Add(avrg_rk, mentions)
-        results['ndcg'].Add(ndcg, mentions)
-        results['recall@1'].Add(re_1, mentions)
-        results['recall@10'].Add(re_10, mentions)
-        results['recall@50'].Add(re_50, mentions)
+        results['ndcg'].Add(ndcg, mentions.item())
+        results['recall@1'].Add(re_1, mentions.item())
+        results['recall@10'].Add(re_10, mentions.item())
+        results['recall@50'].Add(re_50, mentions.item())
 
 
         return results
