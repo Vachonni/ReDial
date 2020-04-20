@@ -417,7 +417,7 @@ class BertLearner(object):
                     inputs['token_type_ids'] = batch[2]
                     
                 outputs = self.model(**inputs)
-                tmp_eval_loss, logits = outputs[:2]
+                tmp_eval_loss, _ = outputs[:2]
             
                 
                 eval_loss += tmp_eval_loss.mean().item()
@@ -439,31 +439,24 @@ class BertLearner(object):
     
     
     ### Predicting values for the model to get metrics other than loss   
-    def predict(self):
+    def RankUser(self):
         """
-        Evaluate model on validation data. 
+        Evaluate model with dataloader of single user combine with all items
+        as text. 
 
         Returns
         -------
-        results: a dict of eval_loss as 'loss' and all other keys
-        ('avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50')
-        as MetricsByMentions objects
+        results: a dict of metrics ('avrg_rank', 'ndcg', 'recall@1', 
+        'recall@10', 'recall@50') as MetricsByMentions objects
         """
         
-        self.logger.info("Running evaluation")
+        self.logger.info("Running RankUser")
         
         self.logger.info("  Num examples = %d", len(self.data.val_dl.dataset))
         self.logger.info("  Batch size = %d", self.data.val_batch_size)
         
         all_logits = None
-        all_labels = None
-        
-        eval_loss, eval_accuracy = 0, 0
-        nb_eval_steps, nb_eval_examples = 0, 0
-        
-        preds = None
-        out_label_ids = None
-        
+                        
         
         # GET PREDICTIONS
         for step, batch in enumerate(progress_bar(self.data.val_dl)):
@@ -479,106 +472,38 @@ class BertLearner(object):
                     inputs['token_type_ids'] = batch[2]
                     
                 outputs = self.model(**inputs)
-                tmp_eval_loss, logits = outputs[:2]
+                _, logits = outputs[:2]
             
-                
-                eval_loss += tmp_eval_loss.mean().item()
-            
-            nb_eval_steps += 1
-            nb_eval_examples += inputs['input_ids'].size(0)
-                
-# *** CHANGE ***            
-            # Treat the recommender case (a 3D input (batch, nb of ratings, itemid+rating))
-            if len(inputs['labels'].shape) == 3:
-                logits = logits.softmax(dim=1)
-# *** CHANGE ***
+                            
+            # Accumulate logits
             if all_logits is None:
                 all_logits = logits
             else:
                 all_logits = torch.cat((all_logits, logits), 0)
             
-            # First batch
-            if all_labels is None:
-# *** CHANGE ***
-                # Treat the recommender case (a 3D input (batch, nb of ratings, itemid+rating))
-                if len(inputs['labels'].shape) == 3:
-                    l_qt_movies_mentionned = []
-                    ratings = torch.zeros_like(logits)
-                    for i, list_itemid_rating in enumerate(inputs['labels']):
-                        for (itemid, rating) in list_itemid_rating:
-                            # If  itemid is -2, it's number of movies mentioned indicator
-                            if itemid == -2: 
-                                l_qt_movies_mentionned.append(rating)
-                                continue
-                            ratings[i, itemid] = rating
-                    all_labels = ratings
-                # Other cases
-                else:
-                    all_labels = inputs['labels']
-            # ...after first batch 
-            else:   
-                # Treat the recommender case (a 3D input (batch, nb of ratings, itemid+rating))
-                if len(inputs['labels'].shape) == 3:
-                    ratings = torch.zeros_like(logits)
-                    for i, list_itemid_rating in enumerate(inputs['labels']):
-                        for (itemid, rating) in list_itemid_rating:
-                            # If  itemid is -2, it's number of movies mentioned indicator
-                            if itemid == -2: 
-                                l_qt_movies_mentionned.append(rating.item())
-                                continue
-                            ratings[i, itemid] = rating
-                    all_labels = torch.cat((all_labels, ratings), 0)
-                # Other cases
-                else:
-                    all_labels =  torch.cat((all_labels, inputs['labels']), 0)
-# *** CHANGE ***
+
  
-            if preds is None:
-                preds = logits.detach().cpu().numpy()
-                out_label_ids = inputs['labels'].detach().cpu().numpy()
-            else:
-                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
-                out_label_ids = np.append(out_label_ids, inputs['labels'].detach().cpu().numpy(), axis=0)
-        
-        
-        
         # GET METRICS
-        # TODO: Here:
-        #   - all_logits are the Softmax predictions by line
-        #   - all_labels are ratings for every possible movies (most at 0, of course)
-        
-        # Get loss
-        eval_loss = eval_loss / nb_eval_steps
-        results = {'eval_loss': eval_loss }           
-        
-        # If it's for items input, qt of "mentioned users" doesn't exits, always only one.
-        if self.items:
-            MetricByMentions.max_mentions = 1
+
         # Initialize the MetricsByMentions objects in the dict results
+        results = {}           
         for m in ['avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50']:
             results[m] = MetricByMentions(m)
             
-
-        # For every prediction (one at a time), get all metrics
-        for logits, labels, mentions in zip(all_logits, all_labels, l_qt_movies_mentionned):
-
-            # Insure their is at least one target movie 
-            # (if not, sample not considered)
-            if labels.sum() == 0: continue
-            
-            # Index of targets at 1 (i.e. liked movies) 
-            targets_idx = labels.nonzero().flatten().tolist()
-            
-            # Get metrics for targets (we only care about liked movies)
-            avrg_rk, ndcg, re_1, re_10, re_50 = GetMetrics(logits, \
-                                                targets_idx, 100)    # 100 is topx value  
-                        
-            # Add metric to appropriate MetricByMentions obj
-            results['avrg_rank'].Add(avrg_rk, mentions)
-            results['ndcg'].Add(ndcg, mentions)
-            results['recall@1'].Add(re_1, mentions)
-            results['recall@10'].Add(re_10, mentions)
-            results['recall@50'].Add(re_50, mentions)
+        
+        # Use labels input to get needed info for metrics evaluation
+        [(_, mentions), (target_idx, _)] = inputs['labels'][0]
+        
+        # Get metrics for target (only one in this case)
+        avrg_rk, ndcg, re_1, re_10, re_50 = GetMetrics(logits, \
+                                            target_idx, 100)    # 100 is topx value  
+                    
+        # Add metric to appropriate MetricByMentions obj
+        results['avrg_rank'].Add(avrg_rk, mentions)
+        results['ndcg'].Add(ndcg, mentions)
+        results['recall@1'].Add(re_1, mentions)
+        results['recall@10'].Add(re_10, mentions)
+        results['recall@50'].Add(re_50, mentions)
 
 
         return results
