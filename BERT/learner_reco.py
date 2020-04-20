@@ -525,7 +525,7 @@ class BertLearner(object):
         if self.items:
             MetricByMentions.max_mentions = 1
         # Initialize the MetricsByMentions objects in the dict results
-        for m in ['avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50']:
+        for m in self.metrics:
             results[m] = MetricByMentions(m)
             
 

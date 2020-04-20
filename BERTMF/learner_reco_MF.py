@@ -250,6 +250,8 @@ class BertLearner(object):
         return optimizer, scheduler
     
     
+    
+    
     ### Train the model ###    
     def fit(self, epochs, lr, validate=True, schedule_type="warmup_cosine", optimizer_type='lamb'):
         
@@ -487,7 +489,7 @@ class BertLearner(object):
 
         # Initialize the MetricsByMentions objects in the dict results
         results = {}           
-        for m in ['avrg_rank', 'ndcg', 'recall@1', 'recall@10', 'recall@50']:
+        for m in self.metrics:
             results[m] = MetricByMentions(m)
             
         

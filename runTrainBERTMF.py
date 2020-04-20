@@ -21,9 +21,6 @@ From FAST-BERT example at:
     
     
     
-Call examples for Prediction on trained model:
-     python runBERT.py --pre_model 1585326608_BERT_Next_NL_lr24e-4 --data_path ./Data/BERT_no_empty_input/Next/TextNLGenres/ --dataPred Test.csv --a_comment PREDONLY_Test_NL_24_NO_EMPTY
-
 
 
 @author: nicholas
@@ -57,18 +54,12 @@ parser.add_argument('--dataTrain', type=str, metavar='', default='Train.csv', \
                     help='File to train with on') 
 parser.add_argument('--dataPred', type=str, metavar='', default='Val.csv', \
                     help='File to make predictions on')    
-
-parser.add_argument('--pre_model', type=str, metavar='', default=None, \
-                    help='Folder where all files for model are saved')    
+  
 parser.add_argument('--epoch', type=int, metavar='', default=1, \
                     help='Qt of epoch')
 parser.add_argument('--lr', type=float, metavar='', default=6e-5*4, \
                     help='Initial learning rate')
 
-parser.add_argument('--items', default=False, action='store_true', \
-                    help="If arg added, input is items (movies), output are users. \
-                          It mainly changes size of output of BERT's prediction")     
-    
 parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', \
                     help='cuda ou cpu')
 
@@ -191,15 +182,11 @@ metrics = ['ndcg', 'recall@1', 'recall@10', 'recall@50']
 
 logger.info('\n Creating learner')
 
-# Set pretrained model to use.
-# If nothing specified, use 'bert-base-uncased'
-if args.pre_model == None: model_to_start = 'bert-base-uncased'
-else: model_to_start = Path(args.log_path, 'Results', args.pre_model)
 
 
 learner = BertLearner.from_pretrained_model(
 						databunch,
-						pretrained_path=model_to_start,
+						pretrained_path='bert-base-uncased',
 						metrics=metrics,
 						device=device_cuda,
 						logger=logger,
@@ -225,50 +212,17 @@ learner.exp_id = exp_id
 ######################
 
 
-# If no fine-tuned model to start with, train
-if args.pre_model == None:
     
-    logger.info('\n Fitting the learner')
-    
-    learner.fit(epochs=args.epoch,
-    			lr=args.lr,
-    			validate=True,        	# Evaluate the model after each epoch
-    			schedule_type="warmup_cosine",
-    			optimizer_type="lamb")
+logger.info('\n Fitting the learner')
+
+learner.fit(epochs=args.epoch,
+			lr=args.lr,
+			validate=True,        	# Evaluate the model after each epoch
+			schedule_type="warmup_cosine",
+			optimizer_type="lamb")
 
 
 
-
-#%%
-
-
-######################
-###                ###
-###     PRED       ###
-###                ###
-######################
-
-
-# If we have a fine_tuned model to start with, pred
-elif args.pre_model != None:
-    
-    
-    from torch.utils.tensorboard import SummaryWriter    
-    from Objects.MetricByMentions import ToTensorboard
-     
-    # Create SummaryWriter for Tensorboard       
-    tensorboard_dir = Path(args.log_path, 'runs', exp_id)
-    tensorboard_dir.mkdir(parents=True, exist_ok=True)    
-    tb_writer = SummaryWriter(tensorboard_dir)
-        
-    # Get results    
-    results = learner.validate()
-    
-    # Add results to tensorboard
-    ToTensorboard(tb_writer, results, 0, learner.model, metrics)
-    for key, value in results.items():
-        if key == 'train_loss' or key == 'eval_loss': continue
-        logger.info("{} : {}: ".format(key, value.Avrg()))
 
 
 
