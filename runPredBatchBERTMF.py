@@ -17,6 +17,12 @@ model came from.
 
 
 
+
+        ***    So big, default is for Test files    ***
+        
+
+
+
 ----
 BERT adapted for recommendation
 
@@ -79,7 +85,7 @@ parser.add_argument('--log_path', type=str, metavar='', default='.',\
                     help='Path where all infos will be saved.')
 parser.add_argument('--data_path', type=str, metavar='', default='./Data/BERTMF/Test/', \
                     help='Path to datasets')
-parser.add_argument('--dataPred', type=str, metavar='', default='Val.csv', \
+parser.add_argument('--dataPred', type=str, metavar='', default='Test.csv', \
                     help='File to make predictions on')    
     
     
@@ -181,7 +187,7 @@ for m in metrics:
 # Treat users one by one
 for u in range(args.user_start, args.user_end):
     
-    user_folder = 'user_' + str(u)
+    user_folder = 'User' + str(u)
     DATA_PATH = Path(args.data_path, 'Test', user_folder)     # path for data files 
     
     logger.info('\n Creating databunch of ',user_folder )
@@ -257,7 +263,7 @@ for u in range(args.user_start, args.user_end):
     
     # For each metric, combine resuls of this user all users
     for metric_name, metric_by_mentions in results_this_user.items():
-        results[metric_name].Combine(metric_by_mentions[metric_name])
+        results[metric_name].Combine(metric_by_mentions)
     
     # # Add results to tensorboard
     # ToTensorboard(tb_writer, results, 0, learner.model, metrics)
@@ -275,8 +281,8 @@ for u in range(args.user_start, args.user_end):
 ######################
 
 
-torch.save(results, Path(model_to_start, 'MetricsByMentions', \
-                    args.user_start, '_', args.user_end, '.pth')
+name_file = 'MetricsByMentions_' + args.user_start + '_' + args.user_end + '.pth'
+torch.save(results, Path(model_to_start, name_file)
 
 
 
