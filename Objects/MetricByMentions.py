@@ -63,6 +63,16 @@ class MetricByMentions:
         
         
         
+    def Combine(self, other_metric_by_mentions):
+        """
+        Combine a metric_by_metion object to another one
+        """
+        # For each qt of mentions in the other, add it to the main one
+        for qt_of_mentions, values in other_metric_by_mentions.infos.items():
+            self.infos[qt_of_mentions] += values
+        
+        
+        
     def Avrg(self):   
         """
         Average of all metric's values (independant of mentions)
