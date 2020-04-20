@@ -498,7 +498,7 @@ class BertLearner(object):
         
         # Get metrics for target (only one in this case)
         avrg_rk, ndcg, re_1, re_10, re_50 = GetMetrics(logits, \
-                                            target_idx, 100)    # 100 is topx value  
+                                            [target_idx], 100)    # 100 is topx value  
                     
         # Add metric to appropriate MetricByMentions obj
         results['avrg_rank'].Add(avrg_rk, mentions)
