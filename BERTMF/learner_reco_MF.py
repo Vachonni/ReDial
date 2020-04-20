@@ -501,7 +501,7 @@ class BertLearner(object):
                                             [target_idx.item()], 100)    # 100 is topx value  
                     
         # Add metric to appropriate MetricByMentions obj
-        results['avrg_rank'].Add(avrg_rk, mentions)
+   #     results['avrg_rank'].Add(avrg_rk, mentions)
         results['ndcg'].Add(ndcg, mentions)
         results['recall@1'].Add(re_1, mentions)
         results['recall@10'].Add(re_10, mentions)
