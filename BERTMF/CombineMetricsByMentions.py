@@ -41,7 +41,7 @@ args = parser.parse_args()
 # Get the files
 
 # Path to the model. Need to update model_id and epoch
-path = Path('/home/vachonni/scratch/ReDial/Results', args.model_id, args.epoch)
+path = Path('/Users/nicholas/ReDial/Results', args.model_id, args.epoch)
 
 files = []
 for i in os.listdir(path):
@@ -61,19 +61,19 @@ results = {}
 for file in files:
     
     # Load file
-    results_this_file = torch.load(file)
+    results_this_file = torch.load(str(path)+'/'+file)
     
     # Update results...
     # ...if first file
     if results == {}:
-        resutls = results_this_file
+        results = results_this_file
     # ...if not empty, combine every metric with global results
     for metric_name, metric_by_mentions in results_this_file.items():
         results[metric_name].Combine(metric_by_mentions)
         
     
         
-# Print resutls
+# Print results
 for key, value in results.items():
     print("Avrg {} = {}: ".format(key, value.Avrg()))
 
@@ -83,7 +83,7 @@ for key, value in results.items():
 # Results to tensorboard
 
 # Create SummaryWriter for Tensorboard       
-tensorboard_dir = Path('/home/vachonni/scratch/ReDial/runs', args.model_id, args.epoch)
+tensorboard_dir = Path('/Users/nicholas/ReDial/runs', args.model_id, args.epoch)
 tensorboard_dir.mkdir(parents=True, exist_ok=True)    
 tb_writer = SummaryWriter(tensorboard_dir)
 

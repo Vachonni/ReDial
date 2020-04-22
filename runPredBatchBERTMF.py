@@ -45,7 +45,7 @@ From FAST-BERT example at:
 """
 
 import time
-import json
+# import json
 from pathlib import Path
 import random
 import numpy as np
@@ -56,8 +56,8 @@ import logging
 
 from BERTMF.data_reco_MF import BertDataBunch
 from BERTMF.learner_reco_MF import BertLearner      
-from torch.utils.tensorboard import SummaryWriter    
-from Objects.MetricByMentions import ToTensorboard, MetricByMentions
+# from torch.utils.tensorboard import SummaryWriter    
+from Objects.MetricByMentions import MetricByMentions  # , ToTensorboard
 
 
 logging.basicConfig(level=logging.INFO)
@@ -118,15 +118,15 @@ args = parser.parse_args()
 # Set args.id with nb of secs since Epoch GMT time + args.a_comment
 exp_id = str(int(time.time())) + "_BERT_" + args.a_comment
 
-# Load Experiement.json
-with open('Experiments.json', 'r') as fp:
-    exp = json.load(fp)
+# # Load Experiement.json
+# with open('Experiments.json', 'r') as fp:
+#     exp = json.load(fp)
 
-# Add this experiment
-exp[exp_id] = args.__dict__
-# Save Experiement.json
-with open('Experiments.json', 'w') as fp:
-    json.dump(exp, fp, indent=4, sort_keys=True)  
+# # Add this experiment
+# exp[exp_id] = args.__dict__
+# # Save Experiement.json
+# with open('Experiments.json', 'w') as fp:
+#     json.dump(exp, fp, indent=4, sort_keys=True)  
     
 
 
@@ -249,10 +249,10 @@ for u in range(args.user_start, args.user_stop):
      
 
      
-    # Create SummaryWriter for Tensorboard       
-    tensorboard_dir = Path(args.log_path, 'runs', exp_id)
-    tensorboard_dir.mkdir(parents=True, exist_ok=True)    
-    tb_writer = SummaryWriter(tensorboard_dir)
+    # # Create SummaryWriter for Tensorboard       
+    # tensorboard_dir = Path(args.log_path, 'runs', exp_id)
+    # tensorboard_dir.mkdir(parents=True, exist_ok=True)    
+    # tb_writer = SummaryWriter(tensorboard_dir)
         
     # Get user's metrics    
     results_this_user = learner.RankUser()
