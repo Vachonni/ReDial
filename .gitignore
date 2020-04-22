@@ -36,9 +36,11 @@ Experiments.json
 /Data/BERT/Items/FullKB/Train.csv
 /Data/BERT/Items/Title/Train.csv
 /Data/BERT/Items/TGA/Train.csv
-/Data/BERTMF/Train5.csv
-/Data/BERTMF/Train10.csv
-/Data/BERTMF/Train40.csv
+/Data/CF2/RT/
+/Data/BERTMF/Train[3-9].csv      
+/Data/BERTMF/Train[1-9][0-9].csv 
+/Data/BERTMF/Test/*/cache/
+
 
 
 ##################
