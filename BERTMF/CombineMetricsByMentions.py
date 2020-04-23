@@ -77,7 +77,7 @@ for file in files:
 for key, value in results.items():
     print("Avrg {} = {}: ".format(key, value.Avrg()))
 
-
+print('Recall@50 - Averages by mentions', results['recall@50'].AvrgByMentions())
 
 
 # Results to tensorboard

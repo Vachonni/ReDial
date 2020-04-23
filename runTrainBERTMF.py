@@ -196,8 +196,7 @@ learner = BertLearner.from_pretrained_model(
 						multi_gpu=True,
 						is_fp16=False,
 						multi_label=True,
-						logging_steps=0,
-                        items=args.items)
+						logging_steps=0)
 
 # Add experience id argument to the learner instance
 learner.exp_id = exp_id
