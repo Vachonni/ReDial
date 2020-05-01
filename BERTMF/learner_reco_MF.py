@@ -146,7 +146,7 @@ class BertLearner(object):
         self.device = device
         self.logger = logger
         self.layer_groups = None
-        self.optimizer = None
+  #      self.optimizer = None
         self.bn_types = (BertLayerNorm, FusedLayerNorm)
         self.n_gpu = 0
         self.max_grad_norm = max_grad_norm
