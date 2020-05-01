@@ -13,7 +13,7 @@ Models used for CF2
 
 import torch
 import torch.nn as nn
-from transformers import BertModel
+from transformers import BertForSequenceClassification
     
 
 
@@ -310,7 +310,7 @@ class TrainBERT(nn.Module):
         elif model == 'TrainBERTMLP':
             self.merge = MLP(input_size, hidden_size, output_size)
         
-        self.BERT = BertModel.from_pretrained('bert-base-uncased')
+        self.BERT = BertForSequenceClassification.from_pretrained('bert-base-uncased')
         
         
     def forward(self, user, item):
@@ -367,8 +367,8 @@ class Train2BERT(nn.Module):
             self.merge = MLP(input_size, hidden_size, output_size)
         
         
-        self.BERT_user = BertModel.from_pretrained('bert-base-uncased')
-        self.BERT_item = BertModel.from_pretrained('bert-base-uncased')
+        self.BERT_user = BertForSequenceClassification.from_pretrained('bert-base-uncased')
+        self.BERT_item = BertForSequenceClassification.from_pretrained('bert-base-uncased')
         
         
     def forward(self, user, item):
