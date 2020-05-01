@@ -255,46 +255,53 @@ class BertLearner(object):
     ### Train the model ###    
     def fit(self, epochs, lr, validate=True, schedule_type="warmup_cosine", optimizer_type='lamb'):
         
-        tensorboard_dir = Path(self.output_dir, 'runs', self.exp_id)
-        tensorboard_dir.mkdir(parents=True, exist_ok=True)
-        print(tensorboard_dir)
-        
-        
-        # Train the model
-        tb_writer = SummaryWriter(tensorboard_dir)
+        # To cover 'large' cases: Only create when vars at init
+        if schedule_type != None and optimizer_type != None:
+            
+            # Insure we already have a scheduler and an optimizer
+            assert hasattr(self, 'optimizer') and hasattr(self, 'scheduler'), \
+                'Missng an optimizer or a scheduler'
+            
+            tensorboard_dir = Path(self.output_dir, 'runs', self.exp_id)
+            tensorboard_dir.mkdir(parents=True, exist_ok=True)
+            print(tensorboard_dir)    
+            self.tb_writer = SummaryWriter(tensorboard_dir)
 
-        train_dataloader = self.data.train_dl
-        if self.max_steps > 0:
-            t_total = self.max_steps
-            self.epochs = self.max_steps // len(train_dataloader) // self.grad_accumulation_steps + 1
-        else:
-            t_total = len(train_dataloader) // self.grad_accumulation_steps * epochs
+            if self.max_steps > 0:
+                t_total = self.max_steps
+                self.epochs = self.max_steps // len(self.data.train_dl) // self.grad_accumulation_steps + 1
+            else:
+                t_total = len(self.data.train_dl) // self.grad_accumulation_steps * epochs
 
-        # Prepare optimiser and schedule 
-        optimizer, _ = self.get_optimizer(lr, t_total, 
-                                                  schedule_type=schedule_type, optimizer_type=optimizer_type)
+            # Prepare optimiser and schedule 
+            self.optimizer, _ = self.get_optimizer(lr, t_total, 
+                                                      schedule_type=schedule_type, optimizer_type=optimizer_type)
         
-        
-        # get the base model if its already wrapped around DataParallel
-        if hasattr(self.model, 'module'):
-            self.model = self.model.module
-        
-        if self.is_fp16:
-            try:
-                from apex import amp
-            except ImportError:
-                raise ImportError('Please install apex to use fp16 training')
-            self.model, optimizer = amp.initialize(self.model, optimizer, opt_level=self.fp16_opt_level)
-        
-        schedule_class = SCHEDULES[schedule_type]
+            schedule_class = SCHEDULES[schedule_type]
 
-        scheduler = schedule_class(optimizer, warmup_steps=self.warmup_steps, t_total=t_total)
+            self.scheduler = schedule_class(self.optimizer, warmup_steps=self.warmup_steps, t_total=t_total)
         
-        # Parallelize the model architecture
-        if self.multi_gpu == True:
-            self.model = torch.nn.DataParallel(self.model)
+            # get the base model if its already wrapped around DataParallel
+            if hasattr(self.model, 'module'):
+                self.model = self.model.module
+            
+            if self.is_fp16:
+                try:
+                    from apex import amp
+                except ImportError:
+                    raise ImportError('Please install apex to use fp16 training')
+                self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level=self.fp16_opt_level)
+            
+    
+            # Parallelize the model architecture
+            if self.multi_gpu == True:
+                self.model = torch.nn.DataParallel(self.model)
+        
         
         # Start Training
+        
+        train_dataloader = self.data.train_dl
+        
         self.logger.info("***** Running training *****")
         self.logger.info("  Num examples = %d", len(train_dataloader.dataset))
         self.logger.info("  Num Epochs = %d", epochs)
@@ -331,9 +338,9 @@ class BertLearner(object):
                     loss = loss / self.grad_accumulation_steps
 
                 if self.is_fp16:
-                    with amp.scale_loss(loss, optimizer) as scaled_loss:
+                    with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                         scaled_loss.backward()
-                    torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), self.max_grad_norm)
+                    torch.nn.utils.clip_grad_norm_(amp.master_params(self.optimizer), self.max_grad_norm)
                 else:
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
@@ -341,8 +348,8 @@ class BertLearner(object):
                 tr_loss += loss.item()
                 epoch_loss += loss.item() 
                 if (step + 1) % self.grad_accumulation_steps == 0:
-                    optimizer.step()
-                    scheduler.step()
+                    self.optimizer.step()
+                    self.scheduler.step()
                     
                     self.model.zero_grad()
                     global_step += 1
@@ -357,7 +364,7 @@ class BertLearner(object):
                 # add train_loss to results
                 results['train_loss'] = epoch_loss/epoch_step
                  # Add results to tensorboard
-                ToTensorboard(tb_writer, results, epoch + 1, self.model, [])
+                ToTensorboard(self.tb_writer, results, epoch + 1, self.model, [])
                 # Print eval_loss
                 self.logger.info("eval_loss after epoch {}: {}   ".format((epoch + 1), results['eval_loss'])) 
                 
@@ -370,12 +377,12 @@ class BertLearner(object):
                 
                 
             # Log metrics
-            tb_writer.add_scalar('lr', scheduler.get_lr()[0], epoch + 1)
-            self.logger.info("lr after epoch {}: {}".format((epoch + 1), scheduler.get_lr()[0]))
+            self.tb_writer.add_scalar('lr', self.scheduler.get_lr()[0], epoch + 1)
+            self.logger.info("lr after epoch {}: {}".format((epoch + 1), self.scheduler.get_lr()[0]))
             self.logger.info("train_loss after epoch {}: {}".format((epoch + 1), epoch_loss/epoch_step))  
             self.logger.info("\n")
             
-        tb_writer.close()
+        self.tb_writer.close()
         
         return global_step, tr_loss / global_step   
     
