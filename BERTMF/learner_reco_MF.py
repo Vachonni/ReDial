@@ -308,7 +308,7 @@ class BertLearner(object):
         self.logger.info("  Total train batch size (w. parallel, distributed & accumulation) = %d",
                        self.data.train_batch_size * self.grad_accumulation_steps)
         self.logger.info("  Gradient Accumulation steps = %d", self.grad_accumulation_steps)
-        self.logger.info("  Total optimization steps = %d", t_total)
+   #     self.logger.info("  Total optimization steps = %d", t_total)
 
         global_step =  0
         epoch_step = 0
