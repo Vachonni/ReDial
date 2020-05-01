@@ -207,6 +207,7 @@ learner.exp_id = exp_id
 for epo in range(args.epoch):
     
     print(f'\n\n\n\n     -----> What ever the rest says, we are doing epoch {epo} \n\n\n')
+    learner.saving_epoch = epo + 1
     
     # First epoch: do not reprocess databunch it's been done at initialisation, 
     # but set optimizer and scheduler

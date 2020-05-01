@@ -371,7 +371,6 @@ class BertLearner(object):
                 # Save at each epoch, with individual names
                 self.logger.info("Saving...")
                 self.results_to_save = results
-                self.saving_epoch = str(epoch + 1)
                 self.save_model()                 
                 self.logger.info("\n                       ...saved")
                 
