@@ -258,9 +258,9 @@ class BertLearner(object):
         # To cover 'large' cases: Only create when vars at init
         if schedule_type != None and optimizer_type != None:
             
-            # Insure we already have a scheduler and an optimizer
-            assert hasattr(self, 'optimizer') and hasattr(self, 'scheduler'), \
-                'Missng an optimizer or a scheduler'
+            # Insure we don't already have a scheduler and an optimizer
+            assert not hasattr(self, 'optimizer') and not hasattr(self, 'scheduler'), \
+                'Already have an optimizer or a scheduler'
             
             tensorboard_dir = Path(self.output_dir, 'runs', self.exp_id)
             tensorboard_dir.mkdir(parents=True, exist_ok=True)
