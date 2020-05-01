@@ -208,8 +208,19 @@ for epo in range(args.epoch):
     
     print(f'\n\n\n\n What ever the rest says, we are doing epoch {epo} \n\n\n')
     
-    # Do not reprocess databunch if first epoch, it's been dont as initialisation
-    if epo != 0:
+    # First epoch: do not reprocess databunch it's been done at initialisation, 
+    # but set optimizer and scheduler
+    if epo == 0:
+        
+        logger.info('\n Fitting the learner on databunch_a first time')
+        
+        learner.fit(epochs=1,      # We are fitting 1 at a time, each dataset its turn
+        			lr=args.lr,
+        			validate=True,    # Evaluate the model (in MF case, need to save model)
+        			schedule_type='warmup_cosine',
+        			optimizer_type='lamb')
+    
+    else:
         
         logger.info('\n Resuming databunch_a')
         
@@ -230,14 +241,13 @@ for epo in range(args.epoch):
         
         learner.data = databunch_a
     
-    
-    logger.info('\n Fitting the learner on databunch_a')
-    
-    learner.fit(epochs=1,      # We are fitting 1 at a time, each dataset its turn
-    			lr=args.lr,
-    			validate=True,    # Evaluate the model (in MF case, only eval loss)
-    			schedule_type=None,
-    			optimizer_type=None)
+        logger.info('\n Fitting the learner on databunch_a')
+        
+        learner.fit(epochs=1,      # We are fitting 1 at a time, each dataset its turn
+        			lr=args.lr,
+        			validate=True,    # Evaluate the model (in MF case, need to save model)
+        			schedule_type=None,
+        			optimizer_type=None)
 
     
     # Free memory
@@ -270,7 +280,7 @@ for epo in range(args.epoch):
     
     learner.fit(epochs=1,      # We are fitting 1 at a time, each dataset its turn
     			lr=args.lr,
-    			validate=True,    # Evaluate the model (in MF case, only eval loss)
+    			validate=True,    # Evaluate the model (in MF case, need to save model)
     			schedule_type=None,
     			optimizer_type=None)
 
