@@ -386,6 +386,8 @@ class Train2BERT(nn.Module):
         """ Trying with Pooler """
         
         # Get user's BERT_avrg value
+        output = self.BERT_user(**user)
+        print('+++++++++++++', output.shape, '\n', output[0].shape)
         user_avrg_last_hidden_layer = self.BERT_user(**user)[1]
 
         # Get item's BERT_avrg value
