@@ -39,6 +39,7 @@ Experiments.json
 /Data/CF2/RT/
 /Data/BERTMF/Train[3-9].csv      
 /Data/BERTMF/Train[1-9][0-9].csv 
+/Data/BERTMF/Train[1-9][0-9]_[a-b].csv
 /Data/BERTMF/Test/*/cache/
 
 

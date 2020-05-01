@@ -365,7 +365,7 @@ class BertDataBunch(object):
             train_examples = None
             cached_features_file = os.path.join(self.cache_dir, 'cached_{}_{}_{}_{}'.format(
                 self.model_type,
-                'train',
+                train_file,
                 'multi_label' if self.multi_label else 'multi_class',
                 str(self.max_seq_length)))
 
@@ -374,7 +374,7 @@ class BertDataBunch(object):
                     train_file, text_col=text_col, label_col=label_col)
 
             train_dataset = self.get_dataset_from_examples(
-                train_examples, 'train')
+                train_examples, train_file)
 
             self.train_batch_size = self.batch_size_per_gpu * \
                 max(1, self.n_gpu)
@@ -387,7 +387,7 @@ class BertDataBunch(object):
             val_examples = None
             cached_features_file = os.path.join(self.cache_dir, 'cached_{}_{}_{}_{}'.format(
                 self.model_type,
-                'dev',
+                val_file,
                 'multi_label' if self.multi_label else 'multi_class',
                 str(self.max_seq_length)))
 
@@ -395,7 +395,7 @@ class BertDataBunch(object):
                 val_examples = processor.get_dev_examples(
                     val_file, text_col=text_col, label_col=label_col)
 
-            val_dataset = self.get_dataset_from_examples(val_examples, 'dev')
+            val_dataset = self.get_dataset_from_examples(val_examples, val_file)
 
             # no grads necessary, hence double val batch size
             self.val_batch_size = self.batch_size_per_gpu * \

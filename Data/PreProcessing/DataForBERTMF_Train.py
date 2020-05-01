@@ -13,7 +13,8 @@ Creating data for BERT MF (Matrix Factorization)   ---> Training
     
     
         *** To change quantity of random items at 0, 
-            do it in GetRandomItemsAt0 func.
+            use RR at beginning of file.
+            Wiil change it in GetRandomItemsAt0 func.
             Should also change name in saving portion  ;)      ***
 
 
@@ -33,7 +34,7 @@ import concurrent.futures
 import multiprocessing
 
 
-
+RR = 30
 
 
 
@@ -45,7 +46,7 @@ import multiprocessing
 
 
 
-def GetRandomItemsAt0(user_row, qt_random_ratings=30):
+def GetRandomItemsAt0(user_row, qt_random_ratings=RR):
     """
 
     Parameters
@@ -165,7 +166,7 @@ def main():
         
        
         
-    datasets = {'Train30': train_data_augmented}   #,
+    datasets = {'Train': train_data_augmented}   #,
               #  'Val': valid_data}        
     
     # Treat both dataset     
@@ -195,10 +196,23 @@ def main():
                                      text, l_rating])
 
         
-        # Save in .csv for fast_bert
+        
+        # SAVE
         col = ['ConvID', 'text', 'ratings']
-        df = pd.DataFrame(data_BERT_format, columns=col)
-        df.to_csv(savePATH + data_type + '.csv', index=False)
+        
+        # If in 'large' case, meaning we are treating train dataset and RR > 20
+        if data_type == 'Train' and RR > 20:
+            # Save in 2 files
+            df = pd.DataFrame(data_BERT_format[:len(data_BERT_format)//2], columns=col)
+            df.to_csv(savePATH + data_type + str(RR) + '_a.csv', index=False)
+            df = pd.DataFrame(data_BERT_format[len(data_BERT_format)//2:], columns=col)
+            df.to_csv(savePATH + data_type + str(RR) + '_b.csv', index=False)            
+        
+        # Else, save in one .csv for fast_bert
+        else:
+            if data_type == 'Train': data_type += str(RR)
+            df = pd.DataFrame(data_BERT_format, columns=col)
+            df.to_csv(savePATH + data_type + '.csv', index=False)
         
         
     
