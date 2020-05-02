@@ -360,6 +360,11 @@ class BertDataBunch(object):
 
         self.labels = processor.get_labels(label_file)
 
+
+        # Refresh to free memory for BERTMF_large case
+        self.train_dl = None
+        
+        
         if train_file:
             # Train DataLoader
             train_examples = None
