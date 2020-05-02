@@ -137,9 +137,9 @@ dataTrain_a = args.dataTrain[:-4] + '_a.csv'
 dataTrain_b = args.dataTrain[:-4] + '_b.csv'
 
 
-logger.info('\n Creating databunch_a')
+logger.info('\n Creating databunch')
 
-databunch_a = BertDataBunch(DATA_PATH, LABEL_PATH,
+databunch = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
                           train_file=dataTrain_a,
                           val_file=args.dataPred,
@@ -177,7 +177,7 @@ metrics = ['ndcg', 'recall@1', 'recall@10', 'recall@50']
 logger.info('\n Creating initial learner')
 
 learner = BertLearner.from_pretrained_model(
-						databunch_a,
+						databunch,
 						pretrained_path='bert-base-uncased',
 						metrics=metrics,
 						device=device_cuda,
@@ -206,14 +206,14 @@ learner.exp_id = exp_id
     
 for epo in range(args.epoch):
     
-    print(f'\n\n\n\n     -----> What ever the rest says, we are doing epoch {epo} \n\n\n')
+    print(f'\n\n\n\n     -----> What ever the rest says, we are doing epoch {epo + 1} \n\n\n')
     learner.saving_epoch = str(epo + 1)
     
     # First epoch: do not reprocess databunch it's been done at initialisation, 
     # but set optimizer and scheduler
     if epo == 0:
         
-        logger.info('\n Fitting the learner on databunch_a first time')
+        logger.info('\n Fitting the learner on databunch first time')
         
         learner.fit(epochs=1,      # We are fitting 1 at a time, each dataset its turn
         			lr=args.lr,
@@ -223,9 +223,9 @@ for epo in range(args.epoch):
     
     else:
         
-        logger.info('\n Resuming databunch_a')
+        logger.info('\n Resuming databunch with data a')
         
-        databunch_a = BertDataBunch(DATA_PATH, LABEL_PATH,
+        learner.data = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
                           train_file=dataTrain_a,
                           val_file=args.dataPred,
@@ -240,9 +240,8 @@ for epo in range(args.epoch):
                           clear_cache=False,
                           no_cache=False)
         
-        learner.data = databunch_a
     
-        logger.info('\n Fitting the learner on databunch_a')
+        logger.info('\n Fitting the learner on data a')
         
         learner.fit(epochs=1,      # We are fitting 1 at a time, each dataset its turn
         			lr=args.lr,
@@ -250,16 +249,14 @@ for epo in range(args.epoch):
         			schedule_type=None,
         			optimizer_type=None)
 
-    
-    # Free memory
-    del(databunch_a)
+
     
     
     # Train on databunch_b
     
-    logger.info('\n With databunch_b')
+    logger.info('\n Resuming databunch with data b')
         
-    databunch_b = BertDataBunch(DATA_PATH, LABEL_PATH,
+    learner.data  = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
                           train_file=dataTrain_b,
                           val_file=args.dataPred,
@@ -273,11 +270,9 @@ for epo in range(args.epoch):
                           model_type='bert',
                           clear_cache=False,
                           no_cache=False)
-        
-    learner.data = databunch_b
 
 
-    logger.info('\n Fitting the learner on databunch_b')
+    logger.info('\n Fitting the learner on data b')
     
     learner.fit(epochs=1,      # We are fitting 1 at a time, each dataset its turn
     			lr=args.lr,
@@ -285,8 +280,7 @@ for epo in range(args.epoch):
     			schedule_type=None,
     			optimizer_type=None)
 
-    # Free memory
-    del(databunch_b)
+
 
 
 
