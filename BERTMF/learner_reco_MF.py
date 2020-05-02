@@ -355,6 +355,8 @@ class BertLearner(object):
                     global_step += 1
                     epoch_step += 1
 
+                break
+            
             
             # If evaluate the model after every epoch
             if validate:

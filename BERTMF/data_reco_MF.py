@@ -359,10 +359,6 @@ class BertDataBunch(object):
             processor = TextProcessor(data_dir, label_dir)
 
         self.labels = processor.get_labels(label_file)
-
-
-        # Refresh to free memory for BERTMF_large case
-        self.train_dl = None
         
         
         if train_file:

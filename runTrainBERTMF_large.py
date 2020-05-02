@@ -190,6 +190,9 @@ learner = BertLearner.from_pretrained_model(
 						multi_label=True,
 						logging_steps=0)
 
+del(databunch)
+
+
 # Add experience id argument to the learner instance
 learner.exp_id = exp_id
 
@@ -224,7 +227,7 @@ for epo in range(args.epoch):
     else:
         
         logger.info('\n Resuming databunch with data a')
-        
+        learner.data = None
         learner.data = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
                           train_file=dataTrain_a,
@@ -255,7 +258,7 @@ for epo in range(args.epoch):
     # Train on databunch_b
     
     logger.info('\n Resuming databunch with data b')
-        
+    learner.data = None    
     learner.data  = BertDataBunch(DATA_PATH, LABEL_PATH,
                           tokenizer='bert-base-uncased',
                           train_file=dataTrain_b,
