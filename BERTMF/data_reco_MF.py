@@ -379,12 +379,12 @@ class BertDataBunch(object):
 
             self.train_batch_size = self.batch_size_per_gpu * \
                 max(1, self.n_gpu)
-            print('beofre sampler')
+
             train_sampler = RandomSampler(train_dataset)
-            print('before dataloader')
+
             self.train_dl = DataLoader(
                 train_dataset, sampler=train_sampler, batch_size=self.train_batch_size)
-            print('after dataloader')
+
         if val_file:
             # Validation DataLoader
             val_examples = None
@@ -487,7 +487,7 @@ class BertDataBunch(object):
                 self.logger.info(
                     "Saving features into cached file %s", cached_features_file)
                 torch.save(features, cached_features_file)
-        print('Before tensors')
+
         # Convert to Tensors and build dataset
         all_input_ids = torch.tensor(
             [f.input_ids for f in features], dtype=torch.long)
@@ -495,7 +495,7 @@ class BertDataBunch(object):
             [f.input_mask for f in features], dtype=torch.long)
         all_segment_ids = torch.tensor(
             [f.segment_ids for f in features], dtype=torch.long)
-        print('after tensors')
+
         if is_test == False:  # labels not available for test set
             if self.multi_label:
                 all_label_ids = torch.tensor(
@@ -510,6 +510,6 @@ class BertDataBunch(object):
             all_label_ids = []
             dataset = TensorDataset(
                 all_input_ids, all_input_mask, all_segment_ids)
-        print('DEBUG: Just before out of Dataset')
+
         return dataset
 

@@ -354,8 +354,6 @@ class BertLearner(object):
                     self.model.zero_grad()
                     global_step += 1
                     epoch_step += 1
-
-                break
             
             
             # If evaluate the model after every epoch
