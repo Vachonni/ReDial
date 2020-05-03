@@ -465,17 +465,18 @@ def GetBertEmbeds(model, RT, user_or_item, DEVICE):
     
     embed_RT = torch.zeros(len(RT), 768).to(DEVICE)
     
-    # Get BERT of of complete model and parrallelize if multiple GPUs available
+    # Get BERT_? part of complete model (This is a BertForSequenceClaissification)
+    # Then get the BertModel part. Parrallelize if multiple GPUs available
     print(f'We have {torch.cuda.device_count()} GPUs available')
     if torch.cuda.device_count() > 1:
         # If using a single BERT for users and items
         if hasattr(model, 'BERT'): 
-                model = torch.nn.DataParallel(model.BERT).to(DEVICE)
+                model = torch.nn.DataParallel(model.BERT.bert).to(DEVICE)
         elif hasattr(model, 'BERT_user') or hasattr(model, 'BERT_item'):
             if user_or_item == 'user':
-                model = torch.nn.DataParallel(model.BERT_user).to(DEVICE)
+                model = torch.nn.DataParallel(model.BERT_user.bert).to(DEVICE)
             elif user_or_item == 'item':
-                model = torch.nn.DataParallel(model.BERT_item).to(DEVICE)
+                model = torch.nn.DataParallel(model.BERT_item.bert).to(DEVICE)
         
     
     # Create Dataset for RT
@@ -493,7 +494,7 @@ def GetBertEmbeds(model, RT, user_or_item, DEVICE):
             idx_rel = idx_rel.to(DEVICE)
             dict_rel = {k:v.squeeze().to(DEVICE) for k, v in dict_rel.items()}
                 
-            embed_rel = model.bert(**dict_rel)[1]
+            embed_rel = model(**dict_rel)[1]
             
             embed_RT[idx_rel] = embed_rel
             

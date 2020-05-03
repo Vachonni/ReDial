@@ -328,10 +328,10 @@ class TrainBERT(nn.Module):
         """ Trying with Pooler """
         
         # Get user's BERT_avrg value
-        user_avrg_last_hidden_layer = self.BERT(**user)[1]
+        user_avrg_last_hidden_layer = self.BERT.bert(**user)[1]
 
         # Get item's BERT_avrg value
-        item_avrg_last_hidden_layer = self.BERT(**item)[1]
+        item_avrg_last_hidden_layer = self.BERT.bert(**item)[1]
       
         
         """  """
