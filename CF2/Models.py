@@ -315,6 +315,9 @@ class TrainBERT(nn.Module):
         
     def forward(self, user, item):
         
+        
+        """ To use avrg, need to change GetBertEmbed for Pred in Utils """
+        
         # # Get user's BERT_avrg value
         # user_last_hidden_layer = self.BERT(**user)[0]
         # user_avrg_last_hidden_layer = user_last_hidden_layer.mean(dim=1)
@@ -372,6 +375,10 @@ class Train2BERT(nn.Module):
         
         
     def forward(self, user, item):
+        
+        
+        """ To use avrg, need to change GetBertEmbed for Pred in Utils """
+
         
         # # Get user's BERT_avrg value
         # user_last_hidden_layer = self.BERT_user(**user)[0]
