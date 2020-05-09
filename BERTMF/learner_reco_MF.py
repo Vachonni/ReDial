@@ -371,6 +371,8 @@ class BertLearner(object):
                 # Save at each epoch, with individual names
                 self.logger.info("Saving...")
                 self.results_to_save = results
+                if epochs != 1:   # This is to test if we are not in the BERTMF_large case
+                    self.saving_epoch = str(epoch)
                 self.save_model()                 
                 self.logger.info("\n                       ...saved")
                 
