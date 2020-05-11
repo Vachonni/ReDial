@@ -697,20 +697,20 @@ def Ranks(all_values, indices_to_rank, ranking_method, topx = 0):
     # Insure the values we need to rank are mostly different. 
     #    We accept case where 1 is repeated because it dataset has repeats 
     #    and possible confusion with remakes e.g. Poltergist and Poltergist (2015)
-    if ranking_method == 'min':
-        values_to_rank = all_values[indices_to_rank]
-        qt_uniq = len(values_to_rank.unique())
-      #  plt.hist(values_to_rank, 100, [0.0,1.0])
-      #  plt.show
-        if qt_uniq < len(values_to_rank) - 1:
-            print("\n\n\n     ****************************")
-            print("          ***   WARNING  ***")
-            print(f"\n     {(1 - (qt_uniq/len(values_to_rank)))*100:.1f}% of predictions are equal")
-            print(f"     --> Indices to rank {indices_to_rank}")
-            print(f"     --> Values to rank are {values_to_rank}")
-            print("     Changing ranking method to    'ordinal'")
-            print("\n     ****************************\n\n\n")
-            ranking_method = 'ordinal'
+    # if ranking_method == 'min':
+    #     values_to_rank = all_values[indices_to_rank]
+    #     qt_uniq = len(values_to_rank.unique())
+    #   #  plt.hist(values_to_rank, 100, [0.0,1.0])
+    #   #  plt.show
+    #     if qt_uniq < len(values_to_rank) - 1:
+    #         print("\n\n\n     ****************************")
+    #         print("          ***   WARNING  ***")
+    #         print(f"\n     {(1 - (qt_uniq/len(values_to_rank)))*100:.1f}% of predictions are equal")
+    #         print(f"     --> Indices to rank {indices_to_rank}")
+    #         print(f"     --> Values to rank are {values_to_rank}")
+    #         print("     Changing ranking method to    'ordinal'")
+    #         print("\n     ****************************\n\n\n")
+    #         ranking_method = 'ordinal'
     
     ranks = ss.rankdata((-1*all_values).cpu(), method=ranking_method)[indices_to_rank]
         
