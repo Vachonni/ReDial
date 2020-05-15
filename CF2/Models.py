@@ -380,23 +380,23 @@ class Train2BERT(nn.Module):
         """ To use avrg, need to change GetBertEmbed for Pred in Utils """
 
         
-        # Get user's BERT_avrg value
-        user_last_hidden_layer = self.BERT_user.bert(**user)[0]
-        user_avrg_last_hidden_layer = user_last_hidden_layer.mean(dim=1)
+        # # Get user's BERT_avrg value
+        # user_last_hidden_layer = self.BERT_user.bert(**user)[0]
+        # user_avrg_last_hidden_layer = user_last_hidden_layer.mean(dim=1)
 
-        # Get item's BERT_avrg value
-        item_last_hidden_layer = self.BERT_item.bert(**item)[0]
-        item_avrg_last_hidden_layer = item_last_hidden_layer.mean(dim=1)    
+        # # Get item's BERT_avrg value
+        # item_last_hidden_layer = self.BERT_item.bert(**item)[0]
+        # item_avrg_last_hidden_layer = item_last_hidden_layer.mean(dim=1)    
         
         
         
         """ Trying with Pooler """
         
-        # # Get user's pooler value from the BertModel part of BertForSenquenceClassification
-        # user_avrg_last_hidden_layer = self.BERT_user.bert(**user)[1]
+        # Get user's pooler value from the BertModel part of BertForSenquenceClassification
+        user_avrg_last_hidden_layer = self.BERT_user.bert(**user)[1]
 
-        # # Get item's BERT_avrg value
-        # item_avrg_last_hidden_layer = self.BERT_item.bert(**item)[1]
+        # Get item's BERT_avrg value
+        item_avrg_last_hidden_layer = self.BERT_item.bert(**item)[1]
       
         
         """  """

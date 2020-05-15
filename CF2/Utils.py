@@ -493,8 +493,12 @@ def GetBertEmbeds(model, RT, user_or_item, DEVICE):
             # Put relations on right DEVICE
             idx_rel = idx_rel.to(DEVICE)
             dict_rel = {k:v.squeeze().to(DEVICE) for k, v in dict_rel.items()}
-                
-            embed_rel = model(**dict_rel)[0].mean(1)
+            
+            # # Average
+            # embed_rel = model(**dict_rel)[0].mean(1)
+            
+            # Pooler 
+            embed_rel = model(**dict_rel)[1]
             
             embed_RT[idx_rel] = embed_rel
             
