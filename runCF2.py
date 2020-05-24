@@ -408,6 +408,7 @@ def main(args):
         
 
 if __name__ == '__main__':
+    print(Arguments.args)
     main(Arguments.args)
 
 
