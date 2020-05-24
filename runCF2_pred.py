@@ -136,22 +136,22 @@ def main():
     ######## LOAD DATA 
     
     
-    print('\n******* Loading PRED samples from *******', args.dataPATH + args.dataPred)
-    df_pred = pd.read_csv(args.dataPATH + args.dataPred)
+    print('\n******* Loading PRED samples from *******', args.data_path + args.dataPred)
+    df_pred = pd.read_csv(args.data_path + args.dataPred)
     # Turn DataFrame into an numpy array (easier iteration)
     pred_data = df_pred.values
     
-    print('\n******* Loading RT *******', args.dataPATH + args.item_RT)
+    print('\n******* Loading RT *******', args.data_path + args.item_RT)
     # LOAD RT - According to the model
     if args.model == 'learned':
         # Load Relational Tables (RT) of BERT ready inputs for users and items. Type: dict of torch.tensor.
-        user_RT = np.load(args.dataPATH + 'RT/BERTInput/' + args.user_RT, allow_pickle=True).item()
-        item_RT = np.load(args.dataPATH + 'RT/BERTInput/' + args.item_RT, allow_pickle=True).item()
+        user_RT = np.load(args.data_path + 'RT/BERTInput/' + args.user_RT, allow_pickle=True).item()
+        item_RT = np.load(args.data_path + 'RT/BERTInput/' + args.item_RT, allow_pickle=True).item()
     else:
         # Load Relational Tables (RT) of BERT_avrg for users and items. Type: torch.tensor.
         # map_location is CPU because Dataset with num_workers > 0 should not return CUDA.
-        user_RT = torch.load(args.dataPATH + 'RT/PoolerEmbed/' + args.user_RT, map_location='cpu')
-        item_RT = torch.load(args.dataPATH + 'RT/PoolerEmbed/' + args.item_RT, map_location='cpu')  
+        user_RT = torch.load(args.data_path + 'RT/PoolerEmbed/' + args.user_RT, map_location='cpu')
+        item_RT = torch.load(args.data_path + 'RT/PoolerEmbed/' + args.item_RT, map_location='cpu')  
     
 
     if args.DEBUG: 
