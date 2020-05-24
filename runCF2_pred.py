@@ -39,7 +39,7 @@ parser = argparse.ArgumentParser(description='CF2 Prediction')
 
 parser.add_argument('--data_path', type=str, metavar='', default='./Data/CF2/', \
                     help='Path to datasets')
-parser.add_argument('--data_pred', type=str, metavar='', default='Test_new.csv', \
+parser.add_argument('--data_pred', type=str, metavar='', default='Test_new.json', \
                     help='File to make predictions on')      
 parser.add_argument('--user_RT', type=str, metavar='', default='items_full_kb.pth', \
                     help='User RT')      
