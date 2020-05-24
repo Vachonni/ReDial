@@ -154,8 +154,6 @@ def main():
         item_RT = torch.load(args.data_path + 'RT/PoolerEmbed/' + args.item_RT, map_location='cpu')  
     
 
-    if args.DEBUG: 
-        pred_data = pred_data[:128]
     
         
     
@@ -187,7 +185,7 @@ def main():
     
     # Evaluate + graph
     for i in range(len(graphs_titles)):
-        avrgs = Utils.ChronoPlot(graphs_data[i], graphs_titles[i], args.logInfosPATH, '_'+args.trial_id)
+        avrgs = Utils.ChronoPlot(graphs_data[i], graphs_titles[i], './Results/Infos/', '_PredOnly')
         if graphs_titles[i] == 'NDCG':
             NDCGs_1model = avrgs
     
