@@ -118,17 +118,12 @@ def main(args):
         elif args.model_output == 'sigmoid':
             criterion = torch.nn.BCEWithLogitsLoss()     
              
-    model = model.to(args.DEVICE)       
+    model = model.to(args.DEVICE)        
+        
+    optimizer = optim.Adam(model.parameters(), lr = args.lr)
     
-    # If we are training
-    if args.preModel == 'none':  
-        optimizer = optim.Adam(model.parameters(), lr = args.lr)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', \
-                                                         patience=3, verbose=True)
-    # If we start with trained model
-    else:
-        checkpoint = torch.load(args.preModel, map_location=args.DEVICE)
-        model.load_state_dict(checkpoint['state_dict'])
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', \
+                                                     patience=3, verbose=True)
     
     
 
@@ -146,19 +141,16 @@ def main(args):
         args.dataTrain = 'Train_LIST.csv'
         args.dataValid = 'Val_LIST.csv'
     
-    # If we are training
-    if args.preModel == 'none':
-        print('\n******* Loading TRAIN samples from *******', args.dataPATH + args.dataTrain)
-        # df_train = pd.read_csv(args.dataPATH + args.dataTrain)
-        with open(args.dataPATH + args.dataTrain, 'r') as fp:
-            train_data = json.load(fp)
-        train_data = np.array(train_data)
-        print('******* Loading VALID samples from *******', args.dataPATH + args.dataValid)
-        # df_valid = pd.read_csv(args.dataPATH + args.dataValid)
-        with open(args.dataPATH + args.dataValid, 'r') as fp:
-            valid_data = json.load(fp)
-        valid_data = np.array(valid_data)
-    
+    print('\n******* Loading TRAIN samples from *******', args.dataPATH + args.dataTrain)
+    # df_train = pd.read_csv(args.dataPATH + args.dataTrain)
+    with open(args.dataPATH + args.dataTrain, 'r') as fp:
+        train_data = json.load(fp)
+    train_data = np.array(train_data)
+    print('******* Loading VALID samples from *******', args.dataPATH + args.dataValid)
+    # df_valid = pd.read_csv(args.dataPATH + args.dataValid)
+    with open(args.dataPATH + args.dataValid, 'r') as fp:
+        valid_data = json.load(fp)
+    valid_data = np.array(valid_data)
     print('******* Loading PRED samples from *******', args.dataPATH + args.dataPred)
     # df_pred = pd.read_csv(args.dataPATH + args.dataPred)
     with open(args.dataPATH + args.dataPred, 'r') as fp:
@@ -171,8 +163,7 @@ def main(args):
     
     print('\n******* Loading RT *******', args.dataPATH + args.item_RT)
     # LOAD RT - According to the model
-    if args.model == 'TrainBERTDotProduct' or args.model == 'TrainBERTMLP' or \
-       args.model == 'Train2BERTDotProduct' or args.model == 'Train2BERTMLP':
+    if args.model == 'TrainBERTDotProduct' or args.model == 'TrainBERTMLP':
         # Load Relational Tables (RT) of BERT ready inputs for users and items. Type: dict of torch.tensor.
         user_RT = np.load(args.dataPATH + args.user_RT, allow_pickle=True).item()
         item_RT = np.load(args.dataPATH + args.item_RT, allow_pickle=True).item()
@@ -190,25 +181,23 @@ def main(args):
     
     ######## CREATING DATASET 
     
-    # If we are training
-    if args.preModel == 'none':
-        print('\n******* Creating torch datasets *******')
-        train_dataset = Utils.Dataset_Train(train_data, user_RT, item_RT, args.model_output)
-        valid_dataset = Utils.Dataset_Train(valid_data, user_RT, item_RT, args.model_output)       
-        
-        
+    print('\n******* Creating torch datasets *******')
+    train_dataset = Utils.Dataset_Train(train_data, user_RT, item_RT, args.model_output)
+    valid_dataset = Utils.Dataset_Train(valid_data, user_RT, item_RT, args.model_output)       
+    
+    
     ######## CREATE DATALOADER
     
-        print('\n******* Creating dataloaders *******\n\n')    
+    print('\n******* Creating dataloaders *******\n\n')    
+    kwargs = {'num_workers': args.num_workers, 'pin_memory': False}
+    if (args.DEVICE == "cuda"):
         kwargs = {'num_workers': args.num_workers, 'pin_memory': False}
-        if (args.DEVICE == "cuda"):
-            kwargs = {'num_workers': args.num_workers, 'pin_memory': False}
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
-                                                   shuffle=True, drop_last=True, **kwargs)
-        valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2*args.batch,\
-                                                   shuffle=True, drop_last=True, **kwargs)    
-           
-        print('out of Dataloader')
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
+                                               shuffle=True, drop_last=True, **kwargs)
+    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2*args.batch,\
+                                               shuffle=True, drop_last=True, **kwargs)    
+       
+    print('out of Dataloader')
 #%%    
 
 
@@ -230,33 +219,31 @@ def main(args):
     NDCG_training_plot = []
 
         
-    if args.DEBUG or args.preModel != 'none': args.epoch = 1
+    if args.DEBUG: args.epoch = 1
     
     
     
-    # If we are training
-    if args.preModel == 'none':
+    
+    start_time = time.time()
+
+    # Augment train_data with random ratings at 0
+    print('before concurent futures')
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        train_data_generator = executor.map(Utils.GetRandomItemsAt0, \
+                                            train_data, chunksize=100)
+    print('out of concurent furures')
+    train_data_augmented = np.vstack(list(train_data_generator))
+    train_dataset = Utils.Dataset_Train(train_data_augmented, \
+                                        user_RT, item_RT, args.model_output)
+    kwargs = {'num_workers': args.num_workers, 'pin_memory': False}    
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
+                                               shuffle=True, drop_last=True, **kwargs)
+       
+    augment_time = time.time()    
         
-        start_time = time.time()
-    
-        # Augment train_data with random ratings at 0
-        print('before concurent futures')
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            train_data_generator = executor.map(Utils.GetRandomItemsAt0, \
-                                                train_data, chunksize=100)
-        print('out of concurent furures')
-        train_data_augmented = np.vstack(list(train_data_generator))
-        train_dataset = Utils.Dataset_Train(train_data_augmented, \
-                                            user_RT, item_RT, args.model_output)
-        kwargs = {'num_workers': args.num_workers, 'pin_memory': False}    
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch,\
-                                                   shuffle=True, drop_last=True, **kwargs)
-           
-        augment_time = time.time()    
-            
-        print(f'Augmenting train data with {args.qt_random_ratings} random ratings \
-              took {augment_time - start_time} seconds with {multiprocessing.cpu_count()} CPUs.')
-            
+    print(f'Augmenting train data with {args.qt_random_ratings} random ratings \
+          took {augment_time - start_time} seconds with {multiprocessing.cpu_count()} CPUs.')
+        
         
         
             
@@ -273,26 +260,24 @@ def main(args):
 
         
 
-        # If we are training
-        if args.preModel == 'none':
-            
-            augment_time = time.time()  
-            
-            
-            train_loss = Utils.TrainReconstruction(train_loader, item_RT, model, \
-                                                   args.model_output, criterion, optimizer, \
-                                                   args.weights, args.completionTrain, args.DEVICE)
-            eval_loss = Utils.EvalReconstruction(valid_loader, item_RT, model, \
-                                                 args.model_output, criterion, \
-                                                 args.weights, args.completionEval, args.DEVICE)
-            
-    
-            train_time = time.time()
-            
-            print(f'With {args.num_workers} workers,\
-                  it took {train_time - augment_time} seconds to train and eval')   
-            
-            
+
+        augment_time = time.time()  
+        
+
+        train_loss = Utils.TrainReconstruction(train_loader, item_RT, model, \
+                                               args.model_output, criterion, optimizer, \
+                                               args.weights, args.completionTrain, args.DEVICE)
+        eval_loss = Utils.EvalReconstruction(valid_loader, item_RT, model, \
+                                             args.model_output, criterion, \
+                                             args.weights, args.completionEval, args.DEVICE)
+        
+
+        train_time = time.time()
+        
+        print(f'With {args.num_workers} workers,\
+              it took {train_time - augment_time} seconds to train and eval')   
+        
+        
         
         
         
@@ -325,71 +310,43 @@ def main(args):
                     NDCG_this_epoch = avrgs
             
 
-        # If we are training
-        if args.preModel == 'none':
-            pred_time = time.time()
-            
-            print(f'It took {pred_time - train_time} seconds to make predictions \n\n')     
+        pred_time = time.time()
+        
+        print(f'It took {pred_time - train_time} seconds to make predictions \n\n')     
+
     
-        
-        
     
-            scheduler.step(NDCG_this_epoch)
-        
+
+        scheduler.step(NDCG_this_epoch)
+    
     
                 
         
-            train_losses.append(train_loss.item())
-            valid_losses.append(eval_loss)
-            NDCG_by_epoch.append(NDCG_this_epoch)
-            losses = [train_losses, valid_losses]  
+        train_losses.append(train_loss.item())
+        valid_losses.append(eval_loss)
+        NDCG_by_epoch.append(NDCG_this_epoch)
+        losses = [train_losses, valid_losses]  
         
-            print('\n\nEND EPOCH {:3d} \nTrain Reconstruction Loss on targets: {:.4E}\
-                  \nValid Reconstruction Loss on targets: {:.4E}' \
-                  .format(epoch, train_loss, eval_loss))
+        print('\n\nEND EPOCH {:3d} \nTrain Reconstruction Loss on targets: {:.4E}\
+              \nValid Reconstruction Loss on targets: {:.4E}' \
+              .format(epoch, train_loss, eval_loss))
     
-            ######## PATIENCE - Stop if the Model didn't improve in the last 'patience' epochs
-            patience = args.patience
-            if len(NDCG_by_epoch) - NDCG_by_epoch.index(max(NDCG_by_epoch)) > patience:
-                print('--------------------------------------------------------------------------------')
-                print('-                               STOPPED TRAINING                               -')
-                print('-  Recent valid losses:', valid_losses[-patience:])
-                print('--------------------------------------------------------------------------------')
-                break   # End training
+        ######## PATIENCE - Stop if the Model didn't improve in the last 'patience' epochs
+        patience = args.patience
+        if len(NDCG_by_epoch) - NDCG_by_epoch.index(max(NDCG_by_epoch)) > patience:
+            print('--------------------------------------------------------------------------------')
+            print('-                               STOPPED TRAINING                               -')
+            print('-  Recent valid losses:', valid_losses[-patience:])
+            print('--------------------------------------------------------------------------------')
+            break   # End training
+    
         
-            
-            ######## SAVE - First model and model that improves NDCG
-            precedent_NDCG = NDCG_by_epoch[:-1]
-            # Cover 1st epoch for min([])'s error
-            if precedent_NDCG == []: precedent_NDCG = [0]   
-            if epoch == 0 or NDCG_this_epoch > max(precedent_NDCG):
-                print('\n\n   Saving...')
-                state = {
-                        'epoch': epoch,
-                        'NDCG_this_epoch': NDCG_this_epoch,
-                        'state_dict': model.state_dict(),
-                        'optimizer': optimizer.state_dict(),
-                        'losses': losses,
-                        }
-                # Save at Models directory + model.pth
-                torch.save(state, args.logModelsPATH+'model.pth')
-                print('......saved.')
-                
-            # Training Curves plot - Save at each epoch
-            plt.plot(losses[0], label='Train')  
-            plt.plot(losses[1], label='Valid')  
-            if args.completionPredEpoch != 0:
-                plt.plot(RE10_training_plot, label='Re@10')
-                plt.plot(NDCG_training_plot, label='NDCG')
-            plt.title('Training Curves - ' + args.trial_id, fontweight="bold")
-            plt.xlabel('Epoch')
-            plt.ylabel(str(criterion)[:3] + ' loss')
-            plt.legend()
-         #   plt.show()
-            plt.savefig(args.logInfosPATH+'Training_Curves.pdf')
-            plt.close()
-                
-            # Saving model corresponding to the last epoch (invariant of patience)
+        ######## SAVE - First model and model that improves NDCG
+        precedent_NDCG = NDCG_by_epoch[:-1]
+        # Cover 1st epoch for min([])'s error
+        if precedent_NDCG == []: precedent_NDCG = [0]   
+        if epoch == 0 or NDCG_this_epoch > max(precedent_NDCG):
+            print('\n\n   Saving...')
             state = {
                     'epoch': epoch,
                     'NDCG_this_epoch': NDCG_this_epoch,
@@ -397,11 +354,37 @@ def main(args):
                     'optimizer': optimizer.state_dict(),
                     'losses': losses,
                     }
-            # Save at Models directory + model_last_epoch.pth
-            torch.save(state, args.logModelsPATH + 'model_last_epoch.pth')
+            # Save at Models directory + model.pth
+            torch.save(state, args.logModelsPATH+'model.pth')
+            print('......saved.')
             
+        # Training Curves plot - Save at each epoch
+        plt.plot(losses[0], label='Train')  
+        plt.plot(losses[1], label='Valid')  
+        if args.completionPredEpoch != 0:
+            plt.plot(RE10_training_plot, label='Re@10')
+            plt.plot(NDCG_training_plot, label='NDCG')
+        plt.title('Training Curves - ' + args.trial_id, fontweight="bold")
+        plt.xlabel('Epoch')
+        plt.ylabel(str(criterion)[:3] + ' loss')
+        plt.legend()
+     #   plt.show()
+        plt.savefig(args.logInfosPATH+'Training_Curves.pdf')
+        plt.close()
             
-            
+        # Saving model corresponding to the last epoch (invariant of patience)
+        state = {
+                'epoch': epoch,
+                'NDCG_this_epoch': NDCG_this_epoch,
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'losses': losses,
+                }
+        # Save at Models directory + model_last_epoch.pth
+        torch.save(state, args.logModelsPATH + 'model_last_epoch.pth')
+        
+        
+        
         
         
         
