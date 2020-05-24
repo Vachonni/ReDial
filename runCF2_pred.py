@@ -116,7 +116,7 @@ def main():
   
     model = model.to(args.DEVICE)      
     
-    model_path = './Results/Models/' + args.model_name     
+    model_path = './Results/Models/' + args.model_name + '/model.pth'   
     
     checkpoint = torch.load(model_path, map_location=args.DEVICE)
     
