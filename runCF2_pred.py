@@ -21,13 +21,46 @@ import pandas as pd
 import numpy as np
 
 # Personnal imports
-import Models
-import Utils as Utils
-import Arguments 
+import CF2.Models as Models
+import CF2.Utils as Utils
+
+
+
+#######################
+###                 ###
+###       ARGS      ###
+###                 ###
+#######################
+
+import argparse
+
+parser = argparse.ArgumentParser(description='CF2 Prediction')
+    
+
+parser.add_argument('--data_path', type=str, metavar='', default='./Data/CF2/', \
+                    help='Path to datasets')
+parser.add_argument('--data_pred', type=str, metavar='', default='Test_new.csv', \
+                    help='File to make predictions on')      
+parser.add_argument('--user_RT', type=str, metavar='', default='items_full_kb.pth', \
+                    help='User RT')      
+parser.add_argument('--item_RT', type=str, metavar='', default='users_nlg.pth', \
+                    help='Item RT')     
+    
+parser.add_argument('--model_type', type=str, metavar='', default='learned', \
+                    help='Learned or fixed latent representations')    
+parser.add_argument('--model_name', type=str, metavar='', \
+                    default='CF2_2BERTDot_40_15e5_b32_fullkb_AVRG_TestSet', \
+                    help='Complete path to model')  
+    
+parser.add_argument('--DEVICE', type=str, metavar='', default='cuda', \
+                    help='cuda ou cpu')
+    
+    
+args = parser.parse_args()
 
 
          
-def main(args):                        
+def main():                        
                     
     
     
@@ -45,21 +78,20 @@ def main(args):
         raise ValueError("DEVICE specify a GPU computation but CUDA is not available")
       
     # Seed 
-    if args.seed:
-        manualSeed = 1
-        # Python
-      #  random.seed(manualSeed)
-        # Numpy
-        np.random.seed(manualSeed)
-        # Torch
-        torch.manual_seed(manualSeed)
-        # Torch with GPU
-        if args.DEVICE == "cuda":
-            torch.cuda.manual_seed(manualSeed)
-            torch.cuda.manual_seed_all(manualSeed)
-            torch.backends.cudnn.enabled = False 
-            torch.backends.cudnn.benchmark = False
-            torch.backends.cudnn.deterministic = True
+    manualSeed = 1
+    # Python
+  #  random.seed(manualSeed)
+    # Numpy
+    np.random.seed(manualSeed)
+    # Torch
+    torch.manual_seed(manualSeed)
+    # Torch with GPU
+    if args.DEVICE == "cuda":
+        torch.cuda.manual_seed(manualSeed)
+        torch.cuda.manual_seed_all(manualSeed)
+        torch.backends.cudnn.enabled = False 
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
     
     # Global variable for runOrion.py (NDCGs for one model)
     NDCGs_1model = -1
@@ -77,14 +109,16 @@ def main(args):
     # Create basic model and load learned parameters
     print('\n******* Loading model *******') 
     
-    if args.model == 'TrainBERTDotProduct' or args.model == 'TrainBERTMLP':
-        model = Models.TrainBERT(args.model) 
+    if args.model_type == 'learned':
+        model = Models.Train2BERT() 
     else:
-        model = Models.MLP()
+        model = Models.MLPLarge()
   
-    model = model.to(args.DEVICE)       
-            
-    checkpoint = torch.load(args.model_path, map_location=args.DEVICE)
+    model = model.to(args.DEVICE)      
+    
+    model_path = './Results/Models/' + args.model_name     
+    
+    checkpoint = torch.load(model_path, map_location=args.DEVICE)
     
     model.load_state_dict(checkpoint['state_dict'])
 
@@ -109,15 +143,15 @@ def main(args):
     
     print('\n******* Loading RT *******', args.dataPATH + args.item_RT)
     # LOAD RT - According to the model
-    if args.model == 'TrainBERTDotProduct' or args.model == 'TrainBERTMLP':
+    if args.model == 'learned':
         # Load Relational Tables (RT) of BERT ready inputs for users and items. Type: dict of torch.tensor.
-        user_RT = np.load(args.dataPATH + args.user_RT, allow_pickle=True).item()
-        item_RT = np.load(args.dataPATH + args.item_RT, allow_pickle=True).item()
+        user_RT = np.load(args.dataPATH + 'RT/BERTInput/' + args.user_RT, allow_pickle=True).item()
+        item_RT = np.load(args.dataPATH + 'RT/BERTInput/' + args.item_RT, allow_pickle=True).item()
     else:
         # Load Relational Tables (RT) of BERT_avrg for users and items. Type: torch.tensor.
         # map_location is CPU because Dataset with num_workers > 0 should not return CUDA.
-        user_RT = torch.load(args.dataPATH + args.user_RT, map_location='cpu')
-        item_RT = torch.load(args.dataPATH + args.item_RT, map_location='cpu')  
+        user_RT = torch.load(args.dataPATH + 'RT/PoolerEmbed/' + args.user_RT, map_location='cpu')
+        item_RT = torch.load(args.dataPATH + 'RT/PoolerEmbed/' + args.item_RT, map_location='cpu')  
     
 
     if args.DEBUG: 
@@ -139,8 +173,8 @@ def main(args):
     print("\n\nPrediction Chronological...")
     avrg_rank, MRR, RR, RE_1, RE_10, RE_50, NDCG = \
             Utils.Prediction(pred_data, model, user_RT, item_RT, \
-                             args.completionPredFinal, args.ranking_method, \
-                             args.DEVICE, args.topx)   
+                             100, 'min', \
+                             args.DEVICE, 100)   
     
     # Print results
     print("\n\n\n\n  ====> RESULTS <==== ")
@@ -163,8 +197,7 @@ def main(args):
 #%%
     
 if __name__ == '__main__':
-    Arguments.args.logInfosPATH = '/Users/nicholas/Desktop/'
-    main(Arguments.args)
+    main()
 
 
 
