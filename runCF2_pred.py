@@ -136,8 +136,8 @@ def main():
     ######## LOAD DATA 
     
     
-    print('\n******* Loading PRED samples from *******', args.data_path + args.dataPred)
-    df_pred = pd.read_csv(args.data_path + args.dataPred)
+    print('\n******* Loading PRED samples from *******', args.data_path + args.data_pred)
+    df_pred = pd.read_csv(args.data_path + args.data_pred)
     # Turn DataFrame into an numpy array (easier iteration)
     pred_data = df_pred.values
     
