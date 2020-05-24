@@ -143,7 +143,7 @@ def main():
     
     print('\n******* Loading RT *******', args.data_path + args.item_RT)
     # LOAD RT - According to the model
-    if args.model == 'learned':
+    if args.model_type == 'learned':
         # Load Relational Tables (RT) of BERT ready inputs for users and items. Type: dict of torch.tensor.
         user_RT = np.load(args.data_path + 'RT/BERTInput/' + args.user_RT, allow_pickle=True).item()
         item_RT = np.load(args.data_path + 'RT/BERTInput/' + args.item_RT, allow_pickle=True).item()
