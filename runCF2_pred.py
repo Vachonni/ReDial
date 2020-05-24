@@ -110,7 +110,7 @@ def main():
     print('\n******* Loading model *******') 
     
     if args.model_type == 'learned':
-        model = Models.Train2BERT() 
+        model = Models.Train2BERT('Train2BERTDotProduct') 
     else:
         model = Models.MLPLarge()
   
