@@ -34,7 +34,7 @@ import concurrent.futures
 import multiprocessing
 
 
-RR = 30
+RR = 50
 
 
 
@@ -201,7 +201,7 @@ def main():
         col = ['ConvID', 'text', 'ratings']
         
         # If in 'large' case, meaning we are treating train dataset and RR > 20
-        if data_type == 'Train' and RR > 20:
+        if data_type == 'Train' and RR > 40:
             # Save in 2 files
             df = pd.DataFrame(data_BERT_format[:len(data_BERT_format)//2], columns=col)
             df.to_csv(savePATH + data_type + str(RR) + '_a.csv', index=False)
