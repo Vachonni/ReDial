@@ -145,8 +145,8 @@ def main():
     # LOAD RT - According to the model
     if args.model_type == 'learned':
         # Load Relational Tables (RT) of BERT ready inputs for users and items. Type: dict of torch.tensor.
-        user_RT = np.load(args.data_path + 'RT/BERTInput/' + args.user_RT, allow_pickle=True).item()
-        item_RT = np.load(args.data_path + 'RT/BERTInput/' + args.item_RT, allow_pickle=True).item()
+        user_RT = torch.load(args.data_path + 'RT/BERTInput/' + args.user_RT)
+        item_RT = torch.load(args.data_path + 'RT/BERTInput/' + args.item_RT)
     else:
         # Load Relational Tables (RT) of BERT_avrg for users and items. Type: torch.tensor.
         # map_location is CPU because Dataset with num_workers > 0 should not return CUDA.
